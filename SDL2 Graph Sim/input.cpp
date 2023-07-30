@@ -4,10 +4,12 @@
 
 void createObject(SDL_Event*);
 void deleteObject();
+void parseKey(SDL_Event*);
+void dragNode(SDL_Event*);
 
 void parseEvent(SDL_Event* event) {
 	switch (event->type) {
-
+		
 	case SDL_MOUSEBUTTONDOWN:
 		
 		switch (event->button.button) {
@@ -21,30 +23,18 @@ void parseEvent(SDL_Event* event) {
 			//remove node or object
 			deleteObject();
 			break;
+		
+		case SDL_BUTTON_MIDDLE:
+			//drag node
+			dragNode(event);
+			break;
 		}
+
 		break;
 
 	case SDL_KEYDOWN:
-		switch(event->key.keysym.sym){
-		case SDLK_SPACE:
-			running = false; //exit
-			break;
-		case SDLK_1:
-			currentColor = WHITE;
-			break;
-		case SDLK_2:
-			currentColor = RED;
-			break;
-		case SDLK_3:
-			currentColor = GREEN;
-			break;
-		case SDLK_4:
-			currentColor = BLUE;
-			break;
-		case SDLK_5:
-			currentColor = PURPLE;
-			break;
-		}
+		//exit program or change color
+		parseKey(event);
 		break;
 	}
 }
@@ -115,4 +105,39 @@ void deleteObject() {
 			i++;
 		}
 	}
+}
+
+void parseKey(SDL_Event* event) {
+	switch (event->key.keysym.sym) {
+	case SDLK_SPACE:
+		running = false; //exit
+		break;
+	case SDLK_1:
+		currentColor = WHITE;
+		break;
+	case SDLK_2:
+		currentColor = RED;
+		break;
+	case SDLK_3:
+		currentColor = GREEN;
+		break;
+	case SDLK_4:
+		currentColor = BLUE;
+		break;
+	case SDLK_5:
+		currentColor = PURPLE;
+		break;
+	}
+}
+
+void dragNode(SDL_Event* event) {
+	int mouseX, mouseY;
+	SDL_GetMouseState(&mouseX, &mouseY);
+	GraphNode* toMove = nullptr;
+	for (int i = 0; i < nodes.size() && toMove == nullptr; i++) {
+		if (nodes[i]->cotainsPoint(mouseX, mouseY)) {
+			toMove = nodes[i];
+		}
+	}
+
 }

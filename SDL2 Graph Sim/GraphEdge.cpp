@@ -9,7 +9,7 @@ GraphEdge::GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color) {
 	ymax = std::max(node1->getY(), node2->getY());
 
 	slope = (double)(node2->getY() - node1->getY()) / (node2->getX() - node1->getX());
-	b = (int) - 1 * slope * node1->getX() + node1->getY();
+	b = (int) (- 1 * slope * node1->getX() + node1->getY());
 }
 
 void GraphEdge::render() {

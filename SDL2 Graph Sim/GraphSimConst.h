@@ -32,3 +32,4 @@ void initSDL(void);
 void clearScreen(SDL_Color);
 void parseEvent(SDL_Event*);
 void drawFilledRectangle(SDL_Rect);
+void render();
