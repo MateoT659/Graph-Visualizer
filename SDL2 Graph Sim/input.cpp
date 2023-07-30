@@ -140,4 +140,8 @@ void dragNode(SDL_Event* event) {
 		}
 	}
 
+	if (toMove != nullptr) {
+
+	}
+
 }
