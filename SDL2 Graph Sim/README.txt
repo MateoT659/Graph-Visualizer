@@ -8,4 +8,6 @@ Use numbers 1-6 to change the color of placed objects:
 
 Your current color will display in the bottom left.
 
+To move a node while keeping its edges connected, middle-click the node and drag it to the desired location.
+
 To exit the application, press the space bar.
