@@ -12,10 +12,15 @@ const int SCREEN_HEIGHT = 720;
 
 const SDL_Color WHITE = {255, 255, 255, 255};
 const SDL_Color BLACK = {0, 0, 0, 255};
-const SDL_Color BLUE = {0, 128, 255, 255 };
-const SDL_Color RED = { 255,0,127,255 };
-const SDL_Color GREEN = { 0, 204, 102 ,255};
+const SDL_Color RED = { 187,0,0 ,255 };
+const SDL_Color AMETHYST = { 144,99,205,255 };
+const SDL_Color BLUE = { 8,39,245, 255 };
+const SDL_Color CYAN = { 0,188,227 , 255 };
+const SDL_Color PINK = { 255,0,127,255 };
+const SDL_Color GREEN = { 50,245,50 ,255 };
 const SDL_Color PURPLE = { 102,0,204,255 };
+const SDL_Color YELLOW = {255, 234, 0, 255};
+const SDL_Color ORANGE = { 255,133,15 ,255 };
 
 extern SDL_Color currentColor;
 

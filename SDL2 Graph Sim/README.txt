@@ -6,8 +6,9 @@ Right click a node or edge to remove it.
 
 Click and drag a node with the middle click button to move it and its connecting edges.
 
-Use numbers 1-6 to change the color of placed objects:
-	1 - WHITE, 2 - RED, 3 - GREEN, 4 - BLUE, 5 - PURPLE
+Use number keys to change the color of placed objects:
+	1 - WHITE, 2 - PINK, 3 - RED, 4 - ORANGE, 5 - YELLOW, 
+	6 - GREEN, 7 - CYAN, 8 - BLUE, 8 - PURPLE, 9 - AMETHYST
 Your current color will display in the bottom left.
 
 To exit the application, press the space bar.

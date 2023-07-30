@@ -113,16 +113,31 @@ void parseKey(SDL_Event* event) {
 		currentColor = WHITE;
 		break;
 	case SDLK_2:
-		currentColor = RED;
+		currentColor = PINK;
 		break;
 	case SDLK_3:
-		currentColor = GREEN;
+		currentColor = RED;
 		break;
 	case SDLK_4:
-		currentColor = BLUE;
+		currentColor = ORANGE;
 		break;
 	case SDLK_5:
+		currentColor = YELLOW;
+		break;
+	case SDLK_6:
+		currentColor = GREEN;
+		break; 
+	case SDLK_7:
+		currentColor = CYAN;
+		break;
+	case SDLK_8:
+		currentColor = BLUE;
+		break;
+	case SDLK_9:
 		currentColor = PURPLE;
+		break;
+	case SDLK_0:
+		currentColor = AMETHYST;
 		break;
 	}
 }
