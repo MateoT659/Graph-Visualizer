@@ -141,7 +141,12 @@ void dragNode(SDL_Event* event) {
 	}
 
 	if (toMove != nullptr) {
-
+		while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_MIDDLE)){
+			if (SDL_PollEvent(event)) {
+				SDL_GetMouseState(toMove->getXaddr(), toMove->getYaddr());
+				render();
+			}
+		}
 	}
 
 }
