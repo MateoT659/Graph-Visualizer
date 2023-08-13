@@ -13,4 +13,4 @@ Your current color will display in the bottom left.
 
 To toggle Directed Graph mode, press 'D'. An arrow icon will be displayed in the bottom left in Directed Graph mode.
 
-To exit the application, press the space bar.
+To exit the application, press the escape key.
