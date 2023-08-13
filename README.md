@@ -12,4 +12,7 @@ Use number keys to change the color of placed objects:
 	6 - GREEN, 7 - CYAN, 8 - BLUE, 8 - PURPLE, 9 - AMETHYST
 Your current color will display in the bottom left.
 
-To exit the application, press the space bar.
+To toggle Directed Graph mode, press 'D'. This mode renders edges as arrows.
+An arrow icon will be displayed in the bottom left whenin Directed Graph mode.
+
+To exit the application, press the escape key.
