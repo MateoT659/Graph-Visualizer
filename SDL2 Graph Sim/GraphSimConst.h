@@ -6,6 +6,7 @@
 
 class GraphNode;
 class GraphEdge;
+class GraphDirectedEdge;
 
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
@@ -32,6 +33,7 @@ extern std::vector<GraphNode*> nodes;
 extern std::vector<GraphEdge*> edges;
 
 extern bool running;
+extern bool diGraph;
 
 void initSDL(void);
 void clearScreen(SDL_Color);

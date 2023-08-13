@@ -62,7 +62,7 @@ void createObject(SDL_Event* event) {
 		}
 
 		if (n2 != -1 && n2 != n1) {
-			edges.push_back(new GraphEdge(nodes[n1], nodes[n2], currentColor));
+			edges.push_back(new GraphEdge(nodes[n1], nodes[n2], currentColor, diGraph));
 		}
 	}
 	else {
@@ -106,7 +106,7 @@ void parseKey(SDL_Event* event) {
 	// exits program on spacebar, or sets color on nums 1-5
 
 	switch (event->key.keysym.sym) {
-	case SDLK_SPACE:
+	case SDLK_ESCAPE:
 		running = false; 
 		break;
 	case SDLK_1:
@@ -138,6 +138,9 @@ void parseKey(SDL_Event* event) {
 		break;
 	case SDLK_0:
 		currentColor = AMETHYST;
+		break;
+	case SDLK_d:
+		diGraph = !diGraph;
 		break;
 	}
 }

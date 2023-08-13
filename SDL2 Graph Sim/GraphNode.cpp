@@ -73,3 +73,8 @@ int GraphNode::getY() {
 int* GraphNode::getYaddr() {
 	return &y;
 }
+
+int GraphNode::getRadius()
+{
+	return radius;
+}

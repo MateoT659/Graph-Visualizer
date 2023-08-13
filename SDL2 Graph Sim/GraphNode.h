@@ -27,4 +27,6 @@ public:
 	int getY();
 
 	int* getYaddr();
+
+	int getRadius();
 };

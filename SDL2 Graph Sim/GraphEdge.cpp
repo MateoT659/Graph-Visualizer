@@ -1,9 +1,10 @@
 #include "GraphEdge.h"
 
-GraphEdge::GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color) {
+GraphEdge::GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color, bool di) {
 	this->node1 = node1;
 	this->node2 = node2;
 	this->color = color;
+	directed = di;
 	
 	//prevents division by zero
 	if (node1->getX() == node2->getX()) {
@@ -20,6 +21,41 @@ GraphEdge::GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color) {
 }
 
 void GraphEdge::render() {
+	renderUnDi();
+	if (directed) {
+		renderDi();
+	}
+}
+
+void GraphEdge::renderDi()
+{
+	GraphNode* from = node1;
+	GraphNode* to = node2;
+
+	double dx = to->getX() - from->getX();
+	double dy = to->getY() - from->getY();
+
+	double tx = to->getX(), ty = to->getY();
+
+	double mag = sqrt(dx * dx + dy * dy);
+
+	double rad = to->getRadius();
+
+	dx /= mag; dy /= mag;
+	tx -= rad * dx;
+	ty -= rad * dy;
+
+	for (int i = 10; i > 0; i--) {
+
+		SDL_RenderDrawLine(renderer, (int)(tx - i * dx - i * dy),
+			(int)(ty - i * dy + i * dx),
+			(int)(tx - i * dx + i * dy),
+			(int)(ty - i * dy - i * dx));
+	}
+}
+
+void GraphEdge::renderUnDi()
+{
 	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 	SDL_RenderDrawLine(renderer, node1->getX(), node1->getY(), node2->getX(), node2->getY());
 }
@@ -40,7 +76,9 @@ GraphNode* GraphEdge::getNode1() {
 GraphNode* GraphEdge::getNode2() {
 	return node2;
 }
-
+SDL_Color GraphEdge::getColor() {
+	return color;
+}
 void GraphEdge::setColor(SDL_Color color) {
 	this->color = color;
 }
