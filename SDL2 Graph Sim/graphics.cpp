@@ -25,6 +25,13 @@ void drawPoint(Vec2 pos) {
 	SDL_RenderDrawPoint(renderer, pos.x, pos.y);
 }
 
+void drawLine(int x1, int y1, int x2, int y2) {
+	SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+}
+void drawLine(Vec2 point1, Vec2 point2) {
+	SDL_RenderDrawLine(renderer, point1.x, point1.y, point2.x, point2.y);
+}
+
 void drawFilledRectangle(SDL_Rect rect, SDL_Color color) {
 	setRenderColor(color);
 

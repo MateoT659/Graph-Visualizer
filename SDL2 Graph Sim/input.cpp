@@ -93,13 +93,17 @@ void deleteObject() {
 		if (nodes[i]->containsPoint(mousePos)) {
 			for (int j = 0; j < edges.size();) {
 				if (edges[j]->containsNode(nodes[i])) {
+					GraphEdge *toDelete = edges[j];
 					edges.erase((edges.begin() + j));
+					delete toDelete;
 				}
 				else {
 					j++;
 				}
 			}
+			GraphNode* toDelete = nodes[i];
 			nodes.erase(nodes.begin() + i);
+			delete toDelete;
 		}
 		else {
 			i++;
@@ -108,7 +112,9 @@ void deleteObject() {
 
 	for (int i = 0; i < edges.size();) {
 		if (edges[i]->isTouched(mousePos)) {
+			GraphEdge* toDelete = edges[i];
 			edges.erase(edges.begin() + i);
+			delete toDelete;
 		}
 		else {
 			i++;
@@ -168,9 +174,6 @@ void parseKey(SDL_Event* event) {
 		break;
 	case SDLK_o:
 		openFile();
-		break;
-	case SDLK_p:
-		std::cout << ghost->getRadius() << "\n";
 		break;
 	}
 }

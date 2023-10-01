@@ -3,6 +3,71 @@
 #include"GraphNode.h"
 
 //save and loading .gphv files (text files with info about layout)
+bool error;
+
+char hexMap[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+int hexCharHelper(char c) {
+    if ('0' <= c && c <= '9') {
+         return (int)c - 48;
+	}
+	else if ('A' <= c && c <= 'F') {
+         return (int)c - 55;
+	}
+    return -1;
+}
+
+std::string toHex(SDL_Color color) {
+	//return "ERROR" if error
+	std::string ret = "#";
+	
+	ret += hexMap[(color.r / 16) % 16];
+	ret += hexMap[color.r % 16];
+
+	ret += hexMap[(color.g / 16) % 16];
+	ret += hexMap[color.g % 16];
+
+	ret += hexMap[(color.b / 16) % 16];
+	ret += hexMap[color.b % 16];
+	
+	return ret;
+}
+
+SDL_Color hexToColor(std::string hex) {
+	//return NULL if error
+
+	if (hex[0] != '#') {
+		error = true;
+		return { 0 };
+	}
+	SDL_Color ret = { 0, 0, 0, 255 };
+	
+	int num1 = hexCharHelper(hex[1]);
+	int num2 = hexCharHelper(hex[2]);
+	if (num1 == -1 || num2 == -1) {
+		error = true;
+		return { 0 };
+	}
+	ret.r = (Uint8)(num1*16 + num2);
+
+	num1 = hexCharHelper(hex[3]);
+	num2 = hexCharHelper(hex[4]);
+	if (num1 == -1 || num2 == -1) {
+		error = true;
+		return { 0 };
+	}
+	ret.g = (Uint8)(num1 * 16 + num2);
+
+	num1 = hexCharHelper(hex[5]);
+	num2 = hexCharHelper(hex[6]);
+	if (num1 == -1 || num2 == -1) {
+		error = true;
+		return { 0 };
+	}
+	ret.b = (Uint8)(num1 * 16 + num2);
+
+	return ret;
+}
 
 void initFiles() {
 	// Initialize OPENFILENAME
@@ -47,6 +112,7 @@ std::string getSavePath() {
 
 void openFile() {
 	//use ifstream to upload status from file
+	error = false;
 	std::ifstream inStream;
 	std::string filename, line, word;
 	filename = getOpenPath();
@@ -55,14 +121,20 @@ void openFile() {
 	}
 	inStream.open(filename);
 	inStream >> word;
-	currentColor.r = stoi(word);
-	inStream >> word;
-	currentColor.g = stoi(word);
-	inStream >> word;
-	currentColor.b = stoi(word);
+	
+	SDL_Color fileColor;
+	EdgeType fileEdgeType;
+	GraphNode* fileGhost;
+	std::vector<GraphNode*> fileNodes;
+	std::vector<GraphEdge*> fileEdges;
+	
+
+	fileColor = hexToColor(word);
+	if (error) return;
 
 	inStream.close();
 	
+	currentColor = fileColor;
 	
 }
 
@@ -76,8 +148,8 @@ void saveFile() {
 		return;
 	}
 	outStream.open(filename);
-
-	outStream << std::to_string(currentColor.r) << " " << std::to_string(currentColor.g) << " " << std::to_string(currentColor.b);
+	
+	outStream << toHex(currentColor) << " ";
 
 	outStream.close();
 }
