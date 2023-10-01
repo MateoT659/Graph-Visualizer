@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/SDL2 Graph Sim/README.txt
+/README.md
+/SDL2 Graph Sim.exe
