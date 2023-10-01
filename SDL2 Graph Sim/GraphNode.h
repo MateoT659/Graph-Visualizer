@@ -1,32 +1,44 @@
 #pragma once
 #include"GraphSimConst.h"
 
+
+
 class GraphNode
 {
 private:
-	int x, y, radius;
+	Vec2 pos;
+	int radius;
 	SDL_Color color;
+	NodeType type;
+	bool ghost;
 
-public:
-	GraphNode(int, int, int, SDL_Color);
-
-	void setPos(int, int);
-
-	void setColor(SDL_Color);
-
-	void render();
-
+	void renderFilled();
 	void renderSkeleton();
 
-	bool cotainsPoint(int, int);
+public:
+	GraphNode(int x, int y, int radius, SDL_Color color, NodeType type);
+	GraphNode(Vec2 pos, int radius, SDL_Color color, NodeType type);
 
+	GraphNode* copy();
+
+	void setPos(int x, int y);
+	void setPos(Vec2 position);
+
+	Vec2 getPos();
 	int getX();
-
 	int* getXaddr();
-
 	int getY();
-
 	int* getYaddr();
 
 	int getRadius();
+	void setRadius(int radius);
+
+	void setColor(SDL_Color color);
+
+	void toggleGhost();
+
+	void render();
+
+	bool containsPoint(Vec2 position);
+	bool containsPoint(int x, int y);
 };

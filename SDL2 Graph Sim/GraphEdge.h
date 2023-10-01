@@ -9,22 +9,23 @@ private:
 	GraphNode* node2;
 	SDL_Color color;
 
-	bool directed;
+	void renderDirected();
+	void renderNone();
+	EdgeType type;
 	double slope;
 	int b, ymin, ymax, xmin, xmax;
 
 public:
-	GraphEdge(GraphNode*, GraphNode*, SDL_Color, bool);
+	GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color, EdgeType type);
 	GraphNode* getNode1();
 	GraphNode* getNode2();
 	SDL_Color getColor();
 	void setColor(SDL_Color color);
 	
 	void update();
-	bool hasNode(GraphNode*);
+	bool containsNode(GraphNode* node);
 	void render(void);
-	void renderDi();
-	void renderUnDi();
-	bool isTouched(int, int);
+	bool isTouched(int x, int y);
+	bool isTouched(Vec2 pos);
 };
 

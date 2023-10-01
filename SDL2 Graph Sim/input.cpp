@@ -9,18 +9,21 @@ void dragNode(SDL_Event*);
 
 void parseEvent(SDL_Event* event) {
 	switch (event->type) {
+	case SDL_MOUSEMOTION:
+		ghost->setPos(getMousePos());
+		break;
 
 	case SDL_MOUSEBUTTONDOWN:
 		switch (event->button.button) {
-		
+
 		case SDL_BUTTON_LEFT:
 			createObject(event);
 			break;
-		
+
 		case SDL_BUTTON_RIGHT:
 			deleteObject();
 			break;
-		
+
 		case SDL_BUTTON_MIDDLE:
 			dragNode(event);
 			break;
@@ -29,7 +32,16 @@ void parseEvent(SDL_Event* event) {
 
 	case SDL_KEYDOWN:
 		parseKey(event);
+		ghost->setColor(currentColor);
 		break;
+
+	case SDL_MOUSEWHEEL:
+		if (event->wheel.y > 0) {
+			ghost->setRadius((int)(ghost->getRadius() *6 / 5.));
+		}
+		else if (event->wheel.y < 0) {
+			ghost->setRadius((int)(ghost->getRadius() * 5 / 6.));
+		}
 	}
 }
 
@@ -38,47 +50,49 @@ void createObject(SDL_Event* event) {
 	// else, waits for the left button to release. if the release is also on a node,
 	// creates an edge between those two nodes 
 	
-	int mouseX, mouseY;
-	SDL_GetMouseState(&mouseX, &mouseY);
+	Vec2 mousePos = getMousePos();
 	int n1 = -1, n2 = -1;
 
 	for (int i = 0; i < nodes.size() && n1 == -1; i++) {
-		if (nodes[i]->cotainsPoint(mouseX, mouseY)) {
+		if (nodes[i]->containsPoint(mousePos)) {
 			n1 = i;
 		}
 	}
 
 	if (n1 != -1) {
-		
+		render(false);
 		while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_LEFT)){
 			SDL_PollEvent(event);
+			
 		}
-		SDL_GetMouseState(&mouseX, &mouseY);
+
+		mousePos = getMousePos();
+
+		ghost->setPos(mousePos);
 
 		for (int i = 0; i < nodes.size() && n2 == -1; i++) {
-			if (nodes[i]->cotainsPoint(mouseX, mouseY)) {
+			if (nodes[i]->containsPoint(mousePos)) {
 				n2 = i;
 			}
 		}
 
 		if (n2 != -1 && n2 != n1) {
-			edges.push_back(new GraphEdge(nodes[n1], nodes[n2], currentColor, diGraph));
+			edges.push_back(new GraphEdge(nodes[n1], nodes[n2], currentColor, edgeType));
 		}
 	}
 	else {
-		nodes.push_back(new GraphNode(mouseX, mouseY, 15, currentColor));
+		nodes.push_back(ghost->copy());
 	}
 }
 
 void deleteObject() {
 	// deletes any nodes or edges touched
-	int mouseX, mouseY;
-	SDL_GetMouseState(&mouseX, &mouseY);
+	Vec2 mousePos = getMousePos();
 
 	for (int i = 0; i < nodes.size();) {
-		if (nodes[i]->cotainsPoint(mouseX, mouseY)) {
+		if (nodes[i]->containsPoint(mousePos)) {
 			for (int j = 0; j < edges.size();) {
-				if (edges[j]->hasNode(nodes[i])) {
+				if (edges[j]->containsNode(nodes[i])) {
 					edges.erase((edges.begin() + j));
 				}
 				else {
@@ -93,7 +107,7 @@ void deleteObject() {
 	}
 
 	for (int i = 0; i < edges.size();) {
-		if (edges[i]->isTouched(mouseX, mouseY)) {
+		if (edges[i]->isTouched(mousePos)) {
 			edges.erase(edges.begin() + i);
 		}
 		else {
@@ -103,7 +117,6 @@ void deleteObject() {
 }
 
 void parseKey(SDL_Event* event) {
-	// exits program on spacebar, or sets color on nums 1-5
 
 	switch (event->key.keysym.sym) {
 	case SDLK_ESCAPE:
@@ -140,21 +153,38 @@ void parseKey(SDL_Event* event) {
 		currentColor = AMETHYST;
 		break;
 	case SDLK_d:
-		diGraph = !diGraph;
+		switch (edgeType) {
+		case Directed:
+			edgeType = None;
+			break;
+		default:
+			edgeType = Directed;
+			break;
+
+		}
+		break;
+	case SDLK_s:
+		saveFile();
+		break;
+	case SDLK_o:
+		openFile();
+		break;
+	case SDLK_p:
+		std::cout << ghost->getRadius() << "\n";
 		break;
 	}
 }
 
 void dragNode(SDL_Event* event) {
-	int mouseX, mouseY;
-	SDL_GetMouseState(&mouseX, &mouseY);
+
+	Vec2 mousePos = getMousePos();
 	
 	GraphNode* toMove = nullptr;
 	std::vector<GraphEdge*> toUpdate;
 
 	//finds node to be moved
 	for (int i = 0; i < nodes.size() && toMove == nullptr; i++) {
-		if (nodes[i]->cotainsPoint(mouseX, mouseY)) {
+		if (nodes[i]->containsPoint(mousePos)) {
 			toMove = nodes[i];
 		}
 	}
@@ -162,7 +192,7 @@ void dragNode(SDL_Event* event) {
 	if (toMove != nullptr) {
 		// finds connected edges
 		for (int i = 0; i < edges.size(); i++) {
-			if (edges[i]->hasNode(toMove)) {
+			if (edges[i]->containsNode(toMove)) {
 				toUpdate.push_back(edges[i]);
 			}
 		}
@@ -171,14 +201,20 @@ void dragNode(SDL_Event* event) {
 		while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_MIDDLE)){
 			if (SDL_PollEvent(event)) {
 				SDL_GetMouseState(toMove->getXaddr(), toMove->getYaddr());
-				
-				render();
+				render(false);
 			}
 		}
 
+		SDL_GetMouseState(ghost->getXaddr(), ghost->getYaddr());
 		// updates any connected nodes
 		for (int i = 0; i < toUpdate.size(); i++) {
 			toUpdate[i]->update();
 		}
 	}
+}
+
+Vec2 getMousePos() {
+	Vec2 position;
+	SDL_GetMouseState(&position.x, &position.y);
+	return position;
 }

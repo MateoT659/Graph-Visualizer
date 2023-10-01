@@ -1,36 +1,42 @@
 #include "GraphEdge.h"
 
-GraphEdge::GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color, bool di) {
+GraphEdge::GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color, EdgeType type) {
 	this->node1 = node1;
 	this->node2 = node2;
 	this->color = color;
-	directed = di;
+	this->type = type;
 	
 	//prevents division by zero
 	if (node1->getX() == node2->getX()) {
 		node1->setPos(node1->getX() + 1, node1->getY());
 	}
 
-	ymin = std::min(node1->getY(), node2->getY());
-	ymax = std::max(node1->getY(), node2->getY());
-	xmin = std::min(node1->getX(), node2->getX());
-	xmax = std::max(node1->getX(), node2->getX());
+	ymin = min(node1->getY(), node2->getY());
+	ymax = max(node1->getY(), node2->getY());
+	xmin = min(node1->getX(), node2->getX());
+	xmax = max(node1->getX(), node2->getX());
 
 	slope = (double)(node2->getY() - node1->getY()) / (node2->getX() - node1->getX());
 	b = (int) (- 1 * slope * node1->getX() + node1->getY());
 }
 
 void GraphEdge::render() {
-	renderUnDi();
-	if (directed) {
-		renderDi();
+	switch (type) {
+	case None:
+		renderNone();
+		break;
+	case Directed:
+		renderDirected();
+		break;
 	}
 }
 
-void GraphEdge::renderDi()
+void GraphEdge::renderDirected()
 {
 	GraphNode* from = node1;
 	GraphNode* to = node2;
+
+	SDL_RenderDrawLine(renderer, node1->getX(), node1->getY(), node2->getX(), node2->getY());
 
 	double dx = to->getX() - from->getX();
 	double dy = to->getY() - from->getY();
@@ -54,7 +60,7 @@ void GraphEdge::renderDi()
 	}
 }
 
-void GraphEdge::renderUnDi()
+void GraphEdge::renderNone()
 {
 	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 	SDL_RenderDrawLine(renderer, node1->getX(), node1->getY(), node2->getX(), node2->getY());
@@ -67,6 +73,10 @@ bool GraphEdge::isTouched(int x, int y) {
 	else {
 		return ((y <= slope * (x - 12) + b + 12 && y >= slope * (x + 12) + b - 12)) && ((y > ymin && y < ymax) || (x > xmin && x < xmax));
 	}
+}
+
+bool GraphEdge::isTouched(Vec2 pos) {
+	return isTouched(pos.x, pos.y);
 }
 
 GraphNode* GraphEdge::getNode1() {
@@ -83,7 +93,7 @@ void GraphEdge::setColor(SDL_Color color) {
 	this->color = color;
 }
 
-bool GraphEdge::hasNode(GraphNode* node) {
+bool GraphEdge::containsNode(GraphNode* node) {
 	return node1 == node || node2 == node;
 }
 
@@ -93,10 +103,10 @@ void GraphEdge::update() {
 		node1->setPos(node1->getX() + 1, node1->getY());
 	}
 
-	ymin = std::min(node1->getY(), node2->getY());
-	ymax = std::max(node1->getY(), node2->getY());
-	xmin = std::min(node1->getX(), node2->getX());
-	xmax = std::max(node1->getX(), node2->getX());
+	ymin = min(node1->getY(), node2->getY());
+	ymax = max(node1->getY(), node2->getY());
+	xmin = min(node1->getX(), node2->getX());
+	xmax = max(node1->getX(), node2->getX());
 	slope = (double)(node2->getY() - node1->getY()) / (node2->getX() - node1->getX());
 	b = (int)(-1 * slope * node1->getX() + node1->getY());
 }

@@ -20,14 +20,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\..\Downloads\01_hello_SDL\main.cpp" />
+    <ClCompile Include="file_dialog.cpp" />
     <ClCompile Include="GraphEdge.cpp" />
+    <ClCompile Include="graphics.cpp" />
     <ClCompile Include="GraphNode.cpp" />
     <ClCompile Include="input.cpp" />
+    <ClCompile Include="Vec2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GraphEdge.h" />
     <ClInclude Include="GraphNode.h" />
     <ClInclude Include="GraphSimConst.h" />
+    <ClInclude Include="Includes.h" />
+    <ClInclude Include="Vec2.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="README.txt" />
