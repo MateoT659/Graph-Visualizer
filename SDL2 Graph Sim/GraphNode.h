@@ -33,7 +33,11 @@ public:
 	int getRadius();
 	void setRadius(int radius);
 
+	SDL_Color getColor();
 	void setColor(SDL_Color color);
+
+	NodeType getType();
+	void setType(NodeType type);
 
 	void toggleGhost();
 

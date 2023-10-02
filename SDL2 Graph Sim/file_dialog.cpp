@@ -115,27 +115,129 @@ void openFile() {
 	error = false;
 	std::ifstream inStream;
 	std::string filename, line, word;
+	int num;
+
 	filename = getOpenPath();
 	if (filename == "ERROR") {
 		return;
 	}
-	inStream.open(filename);
-	inStream >> word;
-	
+
 	SDL_Color fileColor;
 	EdgeType fileEdgeType;
 	GraphNode* fileGhost;
 	std::vector<GraphNode*> fileNodes;
 	std::vector<GraphEdge*> fileEdges;
-	
 
-	fileColor = hexToColor(word);
-	if (error) return;
+	inStream.open(filename);
+	std::getline(inStream, line);
+
+	std::vector<std::string> wordVec;
+	std::stringstream strStream(line);
+	while (strStream >> word) wordVec.push_back(word);
+
+	if (wordVec.size() != 3) return;
+	//currentColor
+	fileColor = hexToColor(wordVec[0]);
+	//edgeType
+	try {
+		num = stoi(wordVec[1]);
+	}
+	catch (...) {
+		return;
+	}
+	if (num < 0 || num>=edgeTypeTotal) return;
+	fileEdgeType = (EdgeType)num;
+	//ghost
+	try {
+		num = stoi(wordVec[2]);
+	}
+	catch (...) {
+		return;
+	}
+	if (num < 0 || num >= nodeTypeTotal) return;
+	fileGhost = new GraphNode(0, 0, 15, fileColor, (NodeType)num);
+	fileGhost->toggleGhost();
+
+	wordVec.clear();
+
+	//nodes
+
+	while (!error && getline(inStream, line) && line.size() != 0) {
+		std::stringstream strStream(line);
+		
+		while (strStream >> word) wordVec.push_back(word);
+
+		if (wordVec.size() != 5){
+			return;
+	}
+
+		int x, y, radius, type;
+
+		try {
+			x = stoi(wordVec[0]);
+			y = stoi(wordVec[1]);
+			radius = stoi(wordVec[2]);
+			type = stoi(wordVec[4]);
+		}
+		catch (...) {
+			return;
+		}
+		if (x<0 || x>=SCREEN_WIDTH) return;
+		if (y<0 || y>=SCREEN_HEIGHT) return;
+		if (type<0 || type>=nodeTypeTotal) return;
+
+		fileNodes.push_back(new GraphNode(x, y, radius, hexToColor(wordVec[3]), (NodeType)type));
+
+		wordVec.clear();
+	}
+
+	while (!error && getline(inStream, line)) {
+		std::stringstream strStream(line);
+
+		while (strStream >> word) wordVec.push_back(word);
+
+		if (wordVec.size() != 4) return;
+
+		int ind1, ind2, type;
+
+		try {
+			ind1 = stoi(wordVec[0]);
+			ind2 = stoi(wordVec[1]);
+			type = stoi(wordVec[3]);
+		}
+		catch (...) {
+			return;
+		}
+		if (ind1 < 0 || ind1 >= fileNodes.size()) return;
+		if (ind2 < 0 || ind2 >= fileNodes.size()) return;
+		if (type < 0 || type >= edgeTypeTotal) return;
+
+		fileEdges.push_back(new GraphEdge(fileNodes[ind1], fileNodes[ind2], hexToColor(wordVec[2]), (EdgeType)type));
+
+		wordVec.clear();
+	}
+
+	//edges
 
 	inStream.close();
-	
+
+	if (error) return;
+
 	currentColor = fileColor;
-	
+	edgeType = fileEdgeType;
+	delete ghost;
+	ghost = fileGhost;
+	for (GraphNode *node : nodes) {
+		delete node;
+	}
+	nodes.clear();
+	for (GraphEdge* edge : edges) {
+		delete edge;
+	}
+	edges.clear();
+
+	nodes = fileNodes;
+	edges = fileEdges;
 }
 
 void saveFile() {
@@ -144,12 +246,41 @@ void saveFile() {
 	std::string filename, line, word;
 	filename = getSavePath();
 	if (filename == "ERROR"){
-		currentColor = BLACK;
 		return;
 	}
 	outStream.open(filename);
 	
+	//currentColor
 	outStream << toHex(currentColor) << " ";
+
+	//edgeType
+	outStream << (int)edgeType << " ";
+
+	//ghost nodeType
+	outStream << (int)(ghost->getType()) << "\n";
+
+	std::unordered_map<GraphNode*,int> indexMap;
+	//input all nodes on seperate lines: x, y, radius, color, type, 
+	for (int i = 0; i < nodes.size(); i++) {
+		outStream << nodes[i]->getX() << " "
+			<< nodes[i]->getY() << " "
+			<< nodes[i]->getRadius() << " "
+			<< toHex(nodes[i]->getColor()) << " "
+			<< nodes[i]->getType() << "\n";
+		indexMap[nodes[i]] = i;
+	}
+
+	outStream << "\n";
+
+	//input all edges on seperate lines: ind1, ind2, color, type
+
+	for (int i = 0; i < edges.size(); i++) {
+		outStream << indexMap[edges[i]->getNode1()] << " "
+			<< indexMap[edges[i]->getNode2()] << " "
+			<< toHex(edges[i]->getColor()) << " "
+			<< (int)edges[i]->getType() << "\n";
+	}
+
 
 	outStream.close();
 }

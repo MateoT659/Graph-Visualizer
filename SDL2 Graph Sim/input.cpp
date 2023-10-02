@@ -158,16 +158,11 @@ void parseKey(SDL_Event* event) {
 	case SDLK_0:
 		currentColor = AMETHYST;
 		break;
-	case SDLK_d:
-		switch (edgeType) {
-		case Directed:
-			edgeType = None;
-			break;
-		default:
-			edgeType = Directed;
-			break;
-
-		}
+	case SDLK_e:
+		edgeType = (EdgeType)(((int)edgeType + 1) % edgeTypeTotal);
+		break;
+	case SDLK_n:
+		ghost->setType((NodeType)(((int)ghost->getType() + 1) % nodeTypeTotal));
 		break;
 	case SDLK_s:
 		saveFile();

@@ -40,8 +40,23 @@ void GraphNode::setPos(Vec2 pos)
 	this->pos = pos;
 }
 
+SDL_Color GraphNode::getColor()
+{
+	return color;
+}
+
 void GraphNode::setColor(SDL_Color color) {
 	this->color = color;
+}
+
+NodeType GraphNode::getType()
+{
+	return type;
+}
+
+void GraphNode::setType(NodeType type)
+{
+	this->type = type;
 }
 
 void GraphNode::toggleGhost()

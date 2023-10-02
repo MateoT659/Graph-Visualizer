@@ -21,6 +21,7 @@ GraphEdge::GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color, EdgeTy
 }
 
 void GraphEdge::render() {
+	setRenderColor(color);
 	switch (type) {
 	case None:
 		renderNone();
@@ -62,7 +63,6 @@ void GraphEdge::renderDirected()
 
 void GraphEdge::renderNone()
 {
-	SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
 	SDL_RenderDrawLine(renderer, node1->getX(), node1->getY(), node2->getX(), node2->getY());
 }
 
@@ -91,6 +91,11 @@ SDL_Color GraphEdge::getColor() {
 }
 void GraphEdge::setColor(SDL_Color color) {
 	this->color = color;
+}
+
+EdgeType GraphEdge::getType()
+{
+	return type;
 }
 
 bool GraphEdge::containsNode(GraphNode* node) {

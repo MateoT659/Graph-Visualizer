@@ -8,10 +8,11 @@ private:
 	GraphNode* node1;
 	GraphNode* node2;
 	SDL_Color color;
+	EdgeType type;
 
 	void renderDirected();
 	void renderNone();
-	EdgeType type;
+	
 	double slope;
 	int b, ymin, ymax, xmin, xmax;
 
@@ -21,6 +22,8 @@ public:
 	GraphNode* getNode2();
 	SDL_Color getColor();
 	void setColor(SDL_Color color);
+
+	EdgeType getType();
 	
 	void update();
 	bool containsNode(GraphNode* node);

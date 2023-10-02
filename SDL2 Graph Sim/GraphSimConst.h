@@ -3,6 +3,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <vector>
+#include <unordered_map>
 #include <windows.h>
 #include <sstream>
 #include <fstream>
@@ -14,14 +15,16 @@ class GraphEdge;
 typedef enum EdgeType {
 	None, Directed
 } EdgeType;
+const int edgeTypeTotal = 2;
 
 
 typedef enum NodeType {
 	Filled, Skeleton
 } NodeType;
+const int nodeTypeTotal = 2;
 
-const int SCREEN_WIDTH = 1080;
-const int SCREEN_HEIGHT = 720;
+const int SCREEN_WIDTH = 1400;
+const int SCREEN_HEIGHT = 1000;
 
 const SDL_Color WHITE = {255, 255, 255, 255};
 const SDL_Color BLACK = {0, 0, 0, 255};
