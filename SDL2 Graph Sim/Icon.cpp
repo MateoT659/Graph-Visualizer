@@ -1,0 +1,70 @@
+#include "Icon.h"
+
+Icon::Icon(int x, int y, std::string icon) {
+	hovered = new Image(x, y, 61, 61, hoveredTexture);
+	selected = new Image(x, y, 61, 61, selectedTexture);
+	this->icon = new Image(x + 12, y + 12, 37, 37, icon);
+	select = new bool(false);
+	hover = false;
+}
+
+void Icon::setIcon(std::string filepath)
+{
+	icon->setImage(filepath);
+}
+
+bool Icon::containsPoint(Vec2 pos)
+{
+	Vec2 thispos = hovered->getPos();
+	return (pos.x >= thispos.x+8) && (pos.x <= thispos.x + 53) && (pos.y >= thispos.y + 8) && (pos.y <= thispos.y + 53);
+}
+
+bool* Icon::getSelectedAddress()
+{
+	return select;
+}
+
+bool Icon::isHovered()
+{
+	return hover;
+}
+
+bool Icon::isSelected()
+{
+	return *select;
+}
+
+void Icon::setHover(bool value)
+{
+	hover = value;
+}
+
+void Icon::setSelected(bool value)
+{
+	*select = value;
+}
+
+void Icon::toggleSelected()
+{
+	*select = !*select;
+}
+
+void Icon::render()
+{
+	if (*select) {
+		selected->render();
+	}
+	else if (hover) {
+		hovered->render();
+	}
+
+
+	icon->render();
+}
+
+void Icon::linkTo(Icon *other)
+{
+	select = other->getSelectedAddress();
+}
+
+

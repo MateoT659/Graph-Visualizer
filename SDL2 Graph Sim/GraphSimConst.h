@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL.h>
+#include <SDL_image.h>
 #include <iostream>
 #include <stdio.h>
 #include <vector>
@@ -11,6 +12,8 @@
 
 class GraphNode;
 class GraphEdge;
+class Image;
+class Icon;
 
 typedef enum EdgeType {
 	None, Directed
@@ -22,6 +25,8 @@ typedef enum NodeType {
 	Filled, Skeleton
 } NodeType;
 const int nodeTypeTotal = 2;
+
+
 
 const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 1000;
@@ -43,6 +48,7 @@ extern SDL_Color currentColor;
 extern EdgeType edgeType;
 
 extern SDL_Window* window;
+extern SDL_Surface* windowSurface;
 extern SDL_Renderer* renderer;
 
 extern GraphNode* ghost;
@@ -61,6 +67,8 @@ void initSDL(void);
 //input.cpp
 void parseEvent(SDL_Event* event);
 Vec2 getMousePos();
+bool rectIsTouched(SDL_Rect rect, int x, int y);
+bool rectIsTouched(SDL_Rect rect, Vec2 pos);
 
 //graphics.cpp
 void setRenderColor(SDL_Color color);
@@ -71,8 +79,11 @@ void drawPoint(Vec2 pos);
 void drawLine(int x1, int y1, int x2, int y2);
 void drawLine(Vec2 point1, Vec2 point2);
 void clearScreen(SDL_Color color);
-void drawFilledRectangle(SDL_Rect rect);
-void render(bool);
+void drawFilledRectangle(SDL_Rect rect, SDL_Color color);
+void render(bool showGhost);
+void renderU(bool showGhost);
+void updateIcons();
+SDL_Texture* loadTexture(std::string filepath);
 
 //file_dialog.cpp
 void initFiles(void);
@@ -80,3 +91,12 @@ std::string getOpenPath();
 void openFile();
 std::string getSavePath();
 void saveFile();
+
+
+extern std::vector<Icon*> icons;
+extern int selectedInd;
+extern Image *sidebar;
+extern SDL_Texture* hoveredTexture;
+extern SDL_Texture* selectedTexture;
+extern std::vector<Icon*> nodeIcons;
+extern std::vector<Icon*> edgeIcons;

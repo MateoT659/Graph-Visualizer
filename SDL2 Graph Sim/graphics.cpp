@@ -1,6 +1,4 @@
-#include "GraphSimConst.h"
-#include "GraphNode.h"
-#include "GraphEdge.h"
+#include "Includes.h"
 
 
 void setRenderColor(SDL_Color color) {
@@ -43,7 +41,6 @@ void drawFilledRectangle(SDL_Rect rect, SDL_Color color) {
 		rect.w -= 2;
 	}
 }
-
 void drawArrow(int x1, int y1, int x2, int y2, SDL_Color color) {
 	setRenderColor(color);
 
@@ -67,6 +64,51 @@ void drawArrow(int x1, int y1, int x2, int y2, SDL_Color color) {
 	}
 }
 
+void updateIcons() {
+	switch ((int)edgeType) {
+	case 0:
+		icons[1]->setIcon("Assets/IconEdge.png");
+		break;
+	case 1:
+		icons[1]->setIcon("Assets/IconArrow.png");
+		break;
+	}
+
+	switch ((int)ghost->getType()) {
+	case 0:
+		icons[0]->setIcon("Assets/IconFilledCircle.png");
+		break;
+	case 1:
+		icons[0]->setIcon("Assets/IconOpenCircle.png");
+		break;
+	}
+}
+
+SDL_Texture* loadTexture(std::string filepath) {
+	//returns nullptr on error;
+	SDL_Texture* texture = NULL;
+
+	
+	SDL_Surface* loadedSurface = IMG_Load(filepath.c_str());
+
+	if (loadedSurface == NULL)
+	{
+		std::cout << "Error: Couldn't load image!\n";
+		return nullptr;
+	}
+
+	//Create texture from surface pixels
+	texture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
+	if (texture == NULL)
+	{
+		std::cout << "Error: Couldn't make texture from image!\n";
+		return nullptr;
+	}
+
+	SDL_FreeSurface(loadedSurface);
+	return texture;
+}
+
 void render(bool showGhost) {
 	clearScreen(BLACK);
 
@@ -81,11 +123,17 @@ void render(bool showGhost) {
 	if (showGhost)
 		ghost->render();
 
-	drawFilledRectangle(colorBox, currentColor);
+	sidebar->render();
 
-	if (edgeType == Directed) {
-		drawArrow(35, SCREEN_HEIGHT - 7, 56, SCREEN_HEIGHT - 28, YELLOW);
+	for (int i = 0; i < icons.size(); i++) {
+		icons[i]->render();
 	}
 
+
+	drawFilledRectangle(colorBox, currentColor);
+}
+
+void renderU(bool showGhost) {
+	render(showGhost);
 	SDL_RenderPresent(renderer);
 }

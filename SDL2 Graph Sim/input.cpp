@@ -1,23 +1,66 @@
-#include "GraphSimConst.h"
-#include "GraphNode.h"
-#include "GraphEdge.h"
+#include "Includes.h"
 
 void createObject(SDL_Event*);
 void deleteObject();
 void parseKey(SDL_Event*);
 void dragNode(SDL_Event*);
+void openNodeMenu(SDL_Event*);
+void openEdgeMenu(SDL_Event*);
 
 void parseEvent(SDL_Event* event) {
+	Vec2 mousePos(0, 0);
 	switch (event->type) {
 	case SDL_MOUSEMOTION:
-		ghost->setPos(getMousePos());
+		mousePos = getMousePos();
+		ghost->setPos(mousePos);
+
+		if (sidebar->isTouched(mousePos)) {
+			for (int i = 0; i < icons.size(); i++) {
+				if (!icons[i]->containsPoint(mousePos) && icons[i]->isHovered()) {
+					icons[i]->setHover(false);
+				}
+				else if (icons[i]->containsPoint(mousePos) && !icons[i]->isHovered()) {
+					icons[i]->setHover(true);
+				}
+			}
+		}
+
 		break;
 
 	case SDL_MOUSEBUTTONDOWN:
 		switch (event->button.button) {
 
-		case SDL_BUTTON_LEFT:
-			createObject(event);
+		case SDL_BUTTON_LEFT: 
+			
+			mousePos = getMousePos();
+			
+			if (sidebar->isTouched(mousePos)){
+				for (int i = 0; i < icons.size()-3; i++) {
+					if (icons[i]->containsPoint(mousePos)) {
+						icons[selectedInd]->toggleSelected();
+						icons[i]->toggleSelected();
+						selectedInd = i;
+					}
+				}
+				if (icons[icons.size() - 3]->containsPoint(mousePos)) {
+					saveFile();
+				}
+				else if (icons[icons.size() - 2]->containsPoint(mousePos)) {
+					saveFile(); //save as eventually
+				}
+				else if (icons[icons.size() - 1]->containsPoint(mousePos)) {
+					openFile();
+				}
+				else if (icons[0]->containsPoint(mousePos)) {
+					openNodeMenu(event);
+				}
+				else if (icons[1]->containsPoint(mousePos)) {
+					openEdgeMenu(event);
+				}
+			}
+			else {
+				createObject(event);
+			}
 			break;
 
 		case SDL_BUTTON_RIGHT:
@@ -34,7 +77,7 @@ void parseEvent(SDL_Event* event) {
 		parseKey(event);
 		ghost->setColor(currentColor);
 		break;
-
+		
 	case SDL_MOUSEWHEEL:
 		if (event->wheel.y > 0) {
 			ghost->setRadius((int)(ghost->getRadius() *6 / 5.));
@@ -43,6 +86,90 @@ void parseEvent(SDL_Event* event) {
 			ghost->setRadius((int)(ghost->getRadius() * 5 / 6.));
 		}
 	}
+}
+
+void openNodeMenu(SDL_Event* event) {
+	SDL_Rect menuBG = { 0, 0, (int)(63 * (int)nodeIcons.size()), 63 };
+	SDL_Color color = { 64, 64, 64, 255 };
+	Vec2 mousePos(0, 0);
+
+	while (!SDL_PollEvent(event));
+
+	while (!(event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)) {
+		if(SDL_PollEvent(event)) {
+			mousePos = getMousePos();
+			if (rectIsTouched(menuBG, mousePos)) {
+				for (int i = 0; i < nodeIcons.size(); i++) {
+					if (!nodeIcons[i]->containsPoint(mousePos) && nodeIcons[i]->isHovered()) {
+						nodeIcons[i]->setHover(false);
+					}
+					else if (nodeIcons[i]->containsPoint(mousePos) && !nodeIcons[i]->isHovered()) {
+						nodeIcons[i]->setHover(true);
+					}
+				}
+
+			}
+
+			render(false);
+			drawFilledRectangle(menuBG, color);
+			for (int i = 0; i < nodeIcons.size(); i++) {
+				nodeIcons[i]->render();
+			}
+			SDL_RenderPresent(renderer);
+
+		}
+	}
+	mousePos = getMousePos();
+	int i;
+	for (i = 0; i < nodeIcons.size() && !nodeIcons[i]->containsPoint(mousePos); i++);
+	//int i has the index
+	if (i < nodeIcons.size()) {
+		ghost->setType((NodeType)i);
+		updateIcons();
+	}
+
+}
+
+void openEdgeMenu(SDL_Event* event) {
+	SDL_Rect menuBG = { 0, 63, (int)(63 * (int)edgeIcons.size()), 63 };
+	SDL_Color color = { 64, 64, 64, 255 };
+	Vec2 mousePos(0, 0);
+
+	while (!SDL_PollEvent(event));
+
+	while (!(event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)) {
+		if (SDL_PollEvent(event)) {
+			mousePos = getMousePos();
+			if (rectIsTouched(menuBG, mousePos)){
+				for (int i = 0; i < edgeIcons.size(); i++) {
+					if (!edgeIcons[i]->containsPoint(mousePos) && edgeIcons[i]->isHovered()) {
+						edgeIcons[i]->setHover(false);
+					}
+					else if (edgeIcons[i]->containsPoint(mousePos) && !edgeIcons[i]->isHovered()) {
+						edgeIcons[i]->setHover(true);
+					}
+				}
+
+			}
+
+			render(false);
+			drawFilledRectangle(menuBG, color);
+			for (int i = 0; i < edgeIcons.size(); i++) {
+				edgeIcons[i]->render();
+			}
+			SDL_RenderPresent(renderer);
+
+		}
+	}
+	mousePos = getMousePos();
+	int i;
+	for (i = 0; i < edgeIcons.size() && !edgeIcons[i]->containsPoint(mousePos); i++);
+	//int i has the index
+	if (i < edgeIcons.size()) {
+		edgeType = (EdgeType)i;
+		updateIcons();
+	}
+
 }
 
 void createObject(SDL_Event* event) {
@@ -60,7 +187,7 @@ void createObject(SDL_Event* event) {
 	}
 
 	if (n1 != -1) {
-		render(false);
+		renderU(false);
 		while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_LEFT)){
 			SDL_PollEvent(event);
 			
@@ -159,10 +286,26 @@ void parseKey(SDL_Event* event) {
 		currentColor = AMETHYST;
 		break;
 	case SDLK_e:
-		edgeType = (EdgeType)(((int)edgeType + 1) % edgeTypeTotal);
+		if (selectedInd <= 1) {
+			edgeType = (EdgeType)(((int)edgeType + 1) % edgeTypeTotal);
+			updateIcons();
+		}
+		else {
+			icons[selectedInd]->toggleSelected();
+			selectedInd = 1;
+			icons[1]->toggleSelected();
+		}
 		break;
 	case SDLK_n:
-		ghost->setType((NodeType)(((int)ghost->getType() + 1) % nodeTypeTotal));
+		if (selectedInd <= 1) {
+			ghost->setType((NodeType)(((int)ghost->getType() + 1) % nodeTypeTotal));
+			updateIcons();
+		}
+		else {
+			icons[selectedInd]->toggleSelected();
+			selectedInd = 1;
+			icons[1]->toggleSelected();
+		}
 		break;
 	case SDLK_s:
 		saveFile();
@@ -199,7 +342,7 @@ void dragNode(SDL_Event* event) {
 		while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_MIDDLE)){
 			if (SDL_PollEvent(event)) {
 				SDL_GetMouseState(toMove->getXaddr(), toMove->getYaddr());
-				render(false);
+				renderU(false);
 			}
 		}
 
@@ -215,4 +358,11 @@ Vec2 getMousePos() {
 	Vec2 position;
 	SDL_GetMouseState(&position.x, &position.y);
 	return position;
+}
+
+bool rectIsTouched(SDL_Rect rect, int x, int y) {
+	return (x >= rect.x) && (x <= rect.x + rect.w) && (y >= rect.y) && (y <= rect.y + rect.h);
+}
+bool rectIsTouched(SDL_Rect rect, Vec2 pos) {
+	return rectIsTouched(rect, pos.x, pos.y);
 }
