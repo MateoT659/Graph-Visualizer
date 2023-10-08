@@ -9,6 +9,8 @@ private:
 	GraphNode* node2;
 	SDL_Color color;
 	EdgeType type;
+	double unitX, unitY;
+	
 
 	void renderDirected();
 	void renderNone();

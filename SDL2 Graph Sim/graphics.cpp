@@ -41,6 +41,9 @@ void drawFilledRectangle(SDL_Rect rect, SDL_Color color) {
 		rect.w -= 2;
 	}
 }
+void drawFilledRectangle(int x, int y, int w, int h, SDL_Color color) {
+	drawFilledRectangle({ x, y, w, h }, color);
+}
 void drawArrow(int x1, int y1, int x2, int y2, SDL_Color color) {
 	setRenderColor(color);
 
@@ -48,15 +51,11 @@ void drawArrow(int x1, int y1, int x2, int y2, SDL_Color color) {
 
 	double dx = x2 - x1;
 	double dy = y2 - y1;
-
 	double tx = x2, ty = y2;
-
 	double mag = sqrt(dx * dx + dy * dy);
-
 	dx /= mag; dy /= mag;
 
 	for (int i = 10; i > 0; i--) {
-
 		SDL_RenderDrawLine(renderer, (int)(tx - i * dx - i * dy),
 			(int)(ty - i * dy + i * dx),
 			(int)(tx - i * dx + i * dy),
@@ -65,35 +64,18 @@ void drawArrow(int x1, int y1, int x2, int y2, SDL_Color color) {
 }
 
 void updateIcons() {
-	switch ((int)edgeType) {
-	case 0:
-		icons[1]->setIcon("Assets/IconEdge.png");
-		break;
-	case 1:
-		icons[1]->setIcon("Assets/IconArrow.png");
-		break;
-	}
-
-	switch ((int)ghost->getType()) {
-	case 0:
-		icons[0]->setIcon("Assets/IconFilledCircle.png");
-		break;
-	case 1:
-		icons[0]->setIcon("Assets/IconOpenCircle.png");
-		break;
-	}
+	icons[1]->setIcon(edgeIcons[(int)edgeType]->getIcon());
+	icons[0]->setIcon(nodeIcons[(int)ghost->getType()]->getIcon());
 }
 
 SDL_Texture* loadTexture(std::string filepath) {
 	//returns nullptr on error;
-	SDL_Texture* texture = NULL;
-
-	
+	SDL_Texture* texture;
 	SDL_Surface* loadedSurface = IMG_Load(filepath.c_str());
 
 	if (loadedSurface == NULL)
 	{
-		std::cout << "Error: Couldn't load image!\n";
+		std::cout << "Error: Couldn't load image \"" << filepath  << "\"!\n";
 		return nullptr;
 	}
 
@@ -128,7 +110,6 @@ void render(bool showGhost) {
 	for (int i = 0; i < icons.size(); i++) {
 		icons[i]->render();
 	}
-
 
 	drawFilledRectangle(colorBox, currentColor);
 }

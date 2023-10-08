@@ -71,10 +71,9 @@ int Image::getHeight()
 	return rect.h;
 }
 
-void Image::setImage(std::string filename)
+void Image::setImage(SDL_Texture *texture)
 {
-	SDL_DestroyTexture(picture);
-	picture = loadTexture(filename);
+	picture = texture;
 }
 
 void Image::render()

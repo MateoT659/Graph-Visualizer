@@ -22,7 +22,7 @@ public:
 	int getWidth();
 	int getHeight();
 
-	void setImage(std::string filename);
+	void setImage(SDL_Texture *texture);
 
 	void render();
 	bool isTouched(Vec2 pos);

@@ -8,9 +8,14 @@ Icon::Icon(int x, int y, std::string icon) {
 	hover = false;
 }
 
-void Icon::setIcon(std::string filepath)
+void Icon::setIcon(SDL_Texture *texture)
 {
-	icon->setImage(filepath);
+	icon->setImage(texture);
+}
+
+SDL_Texture* Icon::getIcon()
+{
+	return icon->getTexture();
 }
 
 bool Icon::containsPoint(Vec2 pos)

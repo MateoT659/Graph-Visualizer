@@ -15,18 +15,15 @@ class GraphEdge;
 class Image;
 class Icon;
 
-typedef enum EdgeType {
-	None, Directed
-} EdgeType;
-const int edgeTypeTotal = 2;
-
-
 typedef enum NodeType {
 	Filled, Skeleton
 } NodeType;
 const int nodeTypeTotal = 2;
 
-
+typedef enum EdgeType {
+	None, Directed
+} EdgeType;
+const int edgeTypeTotal = 2;
 
 const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 1000;
@@ -60,9 +57,22 @@ extern bool running;
 extern OPENFILENAMEA ofn;       // common dialog box structure
 extern char szFile[260];       // buffer for file name
 extern HWND hwnd;              // owner window
+extern CHOOSECOLOR cc;                 // common dialog box structure 
+extern COLORREF acrCustClr[16]; // array of custom colors 
+extern HBRUSH hbrush;           // brush handle
+extern DWORD rgbCurrent;        // initial color selection
+
+extern std::vector<Icon*> icons;
+extern int selectedInd;
+extern Image* sidebar;
+extern SDL_Texture* hoveredTexture;
+extern SDL_Texture* selectedTexture;
+extern std::vector<Icon*> nodeIcons;
+extern std::vector<Icon*> edgeIcons;
 
 //main.cpp
 void initSDL(void);
+void initTextures(void);
 
 //input.cpp
 void parseEvent(SDL_Event* event);
@@ -79,6 +89,7 @@ void drawPoint(Vec2 pos);
 void drawLine(int x1, int y1, int x2, int y2);
 void drawLine(Vec2 point1, Vec2 point2);
 void clearScreen(SDL_Color color);
+void drawFilledRectangle(int x, int y, int w, int h, SDL_Color color);
 void drawFilledRectangle(SDL_Rect rect, SDL_Color color);
 void render(bool showGhost);
 void renderU(bool showGhost);
@@ -86,17 +97,9 @@ void updateIcons();
 SDL_Texture* loadTexture(std::string filepath);
 
 //file_dialog.cpp
+void openColorPicker();
 void initFiles(void);
-std::string getOpenPath();
 void openFile();
-std::string getSavePath();
+void saveAsFile();
 void saveFile();
-
-
-extern std::vector<Icon*> icons;
-extern int selectedInd;
-extern Image *sidebar;
-extern SDL_Texture* hoveredTexture;
-extern SDL_Texture* selectedTexture;
-extern std::vector<Icon*> nodeIcons;
-extern std::vector<Icon*> edgeIcons;
+void adjustCustomColors();

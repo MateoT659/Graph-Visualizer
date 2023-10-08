@@ -12,7 +12,8 @@ private:
 public:
 	Icon(int x, int y, std::string icon);
 
-	void setIcon(std::string filepath);
+	void setIcon(SDL_Texture *texture);
+	SDL_Texture* getIcon();
 
 	bool containsPoint(Vec2 point);
 

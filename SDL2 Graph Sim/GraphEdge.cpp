@@ -6,6 +6,14 @@ GraphEdge::GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color, EdgeTy
 	this->color = color;
 	this->type = type;
 	
+	Vec2 line = node2->getPos() - node1->getPos();
+
+	double mag = line.mag();
+
+	this->unitX = line.x / mag;
+	this->unitY = line.y / mag;
+
+
 	//prevents division by zero
 	if (node1->getX() == node2->getX()) {
 		node1->setPos(node1->getX() + 1, node1->getY());
@@ -37,33 +45,32 @@ void GraphEdge::renderDirected()
 	GraphNode* from = node1;
 	GraphNode* to = node2;
 
-	SDL_RenderDrawLine(renderer, node1->getX(), node1->getY(), node2->getX(), node2->getY());
-
-	double dx = to->getX() - from->getX();
-	double dy = to->getY() - from->getY();
+	//idea how about i just store the unit vector in the edge so i dont have to recalculate it every single time i render
 
 	double tx = to->getX(), ty = to->getY();
 
-	double mag = sqrt(dx * dx + dy * dy);
-
 	double rad = to->getRadius();
 
-	dx /= mag; dy /= mag;
-	tx -= rad * dx;
-	ty -= rad * dy;
+	tx -= rad * unitX;
+	ty -= rad * unitY;
 
 	for (int i = 10; i > 0; i--) {
 
-		SDL_RenderDrawLine(renderer, (int)(tx - i * dx - i * dy),
-			(int)(ty - i * dy + i * dx),
-			(int)(tx - i * dx + i * dy),
-			(int)(ty - i * dy - i * dx));
+		SDL_RenderDrawLine(renderer, (int)(tx - i * unitX - i * unitY),
+			(int)(ty - i * unitY + i * unitX),
+			(int)(tx - i * unitX + i * unitY),
+			(int)(ty - i * unitY - i * unitX));
 	}
+	drawLine((int)(to->getX() - unitX * rad), (int)(to->getY() - unitY * rad), (int)(from->getX() + unitX * from->getRadius()), (int)(from->getY() + unitY * from->getRadius()));
+
 }
 
 void GraphEdge::renderNone()
 {
-	SDL_RenderDrawLine(renderer, node1->getX(), node1->getY(), node2->getX(), node2->getY());
+	drawLine((int)(node2->getX() - unitX * node2->getRadius()),
+		(int)(node2->getY() - unitY * node2->getRadius()),
+		(int)(node1->getX() + unitX * node1->getRadius()),
+		(int)(node1->getY() + unitY * node1->getRadius()));
 }
 
 bool GraphEdge::isTouched(int x, int y) {
@@ -104,6 +111,15 @@ bool GraphEdge::containsNode(GraphNode* node) {
 
 void GraphEdge::update() {
 	//updates information about node1 and node2 after any movement.
+
+	Vec2 line = node2->getPos() - node1->getPos();
+
+	double mag = line.mag();
+
+	this->unitX = line.x / mag;
+	this->unitY = line.y / mag;
+
+
 	if (node1->getX() == node2->getX()) {
 		node1->setPos(node1->getX() + 1, node1->getY());
 	}
