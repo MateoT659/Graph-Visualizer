@@ -66,6 +66,16 @@ void GraphNode::toggleGhost()
 
 bool GraphNode::containsPoint(Vec2 point)
 {
+	switch (type) {
+	case Filled:
+	case Skeleton:
+	case Cross:
+		return (pos - point).mag2() <= radius * radius;
+	case FilledSq:
+	case OpenSq:
+	case CrossSq:
+		return rectIsTouched({ pos.x - radius, pos.y - radius, 2 * radius,2 * radius }, point);
+	}
 	return (pos - point).mag2() <= radius * radius;
 }
 
@@ -117,6 +127,51 @@ void GraphNode::renderSkeleton() {
 	}
 }
 
+void GraphNode::renderCrossed()
+{
+	int x = pos.x, y = pos.y;
+	int dx = radius, dy = 0;
+
+	while (dx >= dy) {
+		drawPoint(x + dx, y + dy);
+		drawPoint(x + dy, y + dx);
+		drawPoint(x - dx, y + dy);
+		drawPoint(x - dy, y + dx);
+		drawPoint(x + dx, y - dy);
+		drawPoint(x + dy, y - dx);
+		drawPoint(x - dx, y - dy);
+		drawPoint(x - dy, y - dx);
+		dy++;
+		while (radius * radius < dx * dx + dy * dy) {
+			dx--;
+		}
+	}
+
+	double rnorm = radius / sqrt2;
+
+	drawLine((int)(pos.x - rnorm+1),(int)( pos.y-rnorm+1),(int) (pos.x+ rnorm), (int)(pos.y + rnorm));
+	drawLine((int)(pos.x  +rnorm -1), (int)(pos.y - rnorm +1), (int)(pos.x - rnorm +1),(int)(pos.y + rnorm-1));
+}
+
+void GraphNode::renderFilledSq()
+{
+	drawFilledRectangle(pos.x - radius, pos.y - radius, 2 * radius, 2 * radius);
+}
+
+void GraphNode::renderSkeletonSq()
+{
+	SDL_Rect rect = { pos.x - radius, pos.y - radius, 2 * radius, 2 * radius };
+	SDL_RenderDrawRect(renderer, &rect);
+}
+
+void GraphNode::renderCrossedSq()
+{
+	SDL_Rect rect = { pos.x - radius, pos.y - radius, 2 * radius, 2 * radius };
+	SDL_RenderDrawRect(renderer, &rect);
+	drawLine(pos.x - radius, pos.y - radius, pos.x + radius, pos.y + radius);
+	drawLine(pos.x + radius, pos.y - radius, pos.x - radius, pos.y + radius);
+}
+
 void GraphNode::render() {
 	setRenderColor(color, ghost ? 100:255);
 	
@@ -126,6 +181,18 @@ void GraphNode::render() {
 		break;
 	case Skeleton:
 		renderSkeleton();
+		break;
+	case Cross:
+		renderCrossed();
+		break;
+	case FilledSq:
+		renderFilledSq();
+		break;
+	case OpenSq:
+		renderSkeletonSq();
+		break;
+	case CrossSq:
+		renderCrossedSq();
 		break;
 	}
 

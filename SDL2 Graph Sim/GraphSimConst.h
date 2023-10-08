@@ -16,9 +16,9 @@ class Image;
 class Icon;
 
 typedef enum NodeType {
-	Filled, Skeleton
+	Filled, Skeleton, Cross, FilledSq, OpenSq, CrossSq
 } NodeType;
-const int nodeTypeTotal = 2;
+const int nodeTypeTotal = 6;
 
 typedef enum EdgeType {
 	None, Directed
@@ -27,6 +27,7 @@ const int edgeTypeTotal = 2;
 
 const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 1000;
+const double sqrt2 = sqrt(2);
 
 const SDL_Color WHITE = {255, 255, 255, 255};
 const SDL_Color BLACK = {0, 0, 0, 255};
@@ -91,6 +92,8 @@ void drawLine(Vec2 point1, Vec2 point2);
 void clearScreen(SDL_Color color);
 void drawFilledRectangle(int x, int y, int w, int h, SDL_Color color);
 void drawFilledRectangle(SDL_Rect rect, SDL_Color color);
+void drawFilledRectangle(int x, int y, int w, int h);
+void drawFilledRectangle(SDL_Rect rect);
 void render(bool showGhost);
 void renderU(bool showGhost);
 void updateIcons();

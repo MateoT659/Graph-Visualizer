@@ -33,7 +33,23 @@ void drawLine(Vec2 point1, Vec2 point2) {
 void drawFilledRectangle(SDL_Rect rect, SDL_Color color) {
 	setRenderColor(color);
 
-	while (rect.w > 0 || rect.h > 0) {
+	int xlim = rect.x + rect.w;
+	int ylim = rect.y + rect.h;
+
+	while ((rect.w > 0 && rect.h > 0)) {
+		SDL_RenderDrawRect(renderer, &rect);
+		rect.x++;
+		rect.y++;
+		rect.h -= 2;
+		rect.w -= 2;
+	}
+}
+void drawFilledRectangle(SDL_Rect rect) {
+
+	int xlim = rect.x + rect.w;
+	int ylim = rect.y + rect.h;
+
+	while ((rect.w > 0 && rect.h > 0)) {
 		SDL_RenderDrawRect(renderer, &rect);
 		rect.x++;
 		rect.y++;
@@ -44,6 +60,10 @@ void drawFilledRectangle(SDL_Rect rect, SDL_Color color) {
 void drawFilledRectangle(int x, int y, int w, int h, SDL_Color color) {
 	drawFilledRectangle({ x, y, w, h }, color);
 }
+void drawFilledRectangle(int x, int y, int w, int h) {
+	drawFilledRectangle({ x, y, w, h });
+}
+
 void drawArrow(int x1, int y1, int x2, int y2, SDL_Color color) {
 	setRenderColor(color);
 

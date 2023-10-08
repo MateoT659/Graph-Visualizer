@@ -15,6 +15,7 @@ private:
 	void renderDirected();
 	void renderNone();
 	
+	Vec2 to, from;
 	double slope;
 	int b, ymin, ymax, xmin, xmax;
 

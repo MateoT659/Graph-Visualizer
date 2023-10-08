@@ -14,6 +14,10 @@ private:
 
 	void renderFilled();
 	void renderSkeleton();
+	void renderCrossed();
+	void renderFilledSq();
+	void renderSkeletonSq();
+	void renderCrossedSq();
 
 public:
 	GraphNode(int x, int y, int radius, SDL_Color color, NodeType type);
