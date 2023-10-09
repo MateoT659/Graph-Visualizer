@@ -81,7 +81,64 @@ void GraphEdge::render() {
 	case Directed:
 		renderDirected();
 		break;
+	case Resistance:
+		renderResist();
+		break;
+	case Dashed:
+		renderDashed();
+		break;
+	case Dotted:
+		renderDotted();
+		break;
 	}
+}
+
+void GraphEdge::renderDotted()
+{
+	double dx = from.x, dy = from.y;
+	double ix = unitX * 6, iy = unitY * 6;
+
+	while (!node2->containsPoint((int)dx, (int)dy)) {
+		drawPoint((int)dx, (int)dy);
+		dx += ix;
+		dy += iy;
+	}
+}
+
+void GraphEdge::renderDashed()
+{
+	double bx = from.x, by = from.y;
+	double ex = from.x, ey = from.y;
+	ex += (unitX * 8);
+	ey += (unitY * 8);
+	double incx = 2*(ex - bx);
+	double incy = 2*(ey - by);
+
+	while (!node2->containsPoint((int)ex, (int)ey) && !node2->containsPoint((int)bx, (int)by)) {
+		drawLine((int)bx, (int)by, (int)ex, (int)ey);
+		ex += incx;
+		bx += incx;
+		ey += incy;
+		by += incy;
+	}
+}
+
+void GraphEdge::renderResist()
+{
+	Vec2 v((int)(unitX*5), (int)(unitY*5));
+	//adjust to change size;
+
+	Vec2 line = (to - from)/2 - v*4;
+	drawLine(from, from + line);
+	drawLine(to, to - line);
+	Vec2 sqStart = from + line;
+
+	Vec2 perp(-(int)(unitY*10), (int)(unitX*10));
+	drawLine(sqStart, sqStart + perp + v);
+	drawLine(sqStart + perp + v, sqStart - perp + v * 3);
+	drawLine(sqStart - perp + v * 3, sqStart + perp + v*5);
+	drawLine(sqStart + perp + v * 5, sqStart - perp + v * 7);
+	drawLine(sqStart - perp + v * 7, to - line);
 }
 
 void GraphEdge::renderDirected()

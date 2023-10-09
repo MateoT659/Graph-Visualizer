@@ -11,7 +11,9 @@ private:
 	EdgeType type;
 	double unitX, unitY;
 	
-
+	void renderDotted();
+	void renderDashed();
+	void renderResist();
 	void renderDirected();
 	void renderNone();
 	

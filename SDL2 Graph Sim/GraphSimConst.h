@@ -21,9 +21,9 @@ typedef enum NodeType {
 const int nodeTypeTotal = 6;
 
 typedef enum EdgeType {
-	None, Directed
+	None, Directed, Resistance, Dashed, Dotted
 } EdgeType;
-const int edgeTypeTotal = 2;
+const int edgeTypeTotal = 5;
 
 const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 1000;
