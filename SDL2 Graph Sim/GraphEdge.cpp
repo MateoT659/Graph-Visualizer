@@ -5,6 +5,8 @@ GraphEdge::GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color, EdgeTy
 	this->node2 = node2;
 	this->color = color;
 	this->type = type;
+
+	isSwitched = false;
 	
 	Vec2 line = node2->getPos() - node1->getPos();
 
@@ -57,17 +59,20 @@ GraphEdge::GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color, EdgeTy
 
 
 	//prevents division by zero
-	if (node1->getX() == node2->getX()) {
-		node1->setPos(node1->getX() + 1, node1->getY());
-	}
 
 	ymin = min(node1->getY(), node2->getY());
 	ymax = max(node1->getY(), node2->getY());
 	xmin = min(node1->getX(), node2->getX());
 	xmax = max(node1->getX(), node2->getX());
 
-	slope = (double)(node2->getY() - node1->getY()) / (node2->getX() - node1->getX());
-	b = (int) (- 1 * slope * node1->getX() + node1->getY());
+	slope = (double)(to.y - from.y) / (to.x - from.x + (to.x == from.x ? 1 : 0));
+
+	b = (int) (from.y - slope * from.x);
+}
+
+void GraphEdge::toggleSwitch()
+{
+	isSwitched = !isSwitched;
 }
 
 void GraphEdge::render() {
@@ -90,6 +95,25 @@ void GraphEdge::render() {
 	case Dotted:
 		renderDotted();
 		break;
+	case Switch:
+		renderSwitch();
+	}
+}
+
+void GraphEdge::renderSwitch()
+{
+	Vec2 v((int)(unitX * 60), (int)(unitY * 60));
+	Vec2 line = (to - from - v) / 2;
+	drawCircle(from + line, 3);
+	drawCircle(to - line, 3);
+
+	if (isSwitched) {
+		drawLine(from, to);
+	}
+	else {
+		drawLine(from, from + line);
+		drawLine(to, to - line);
+		drawLine(from + line, from + line + v/(1.35) - v.getPerp()/(2) );
 	}
 }
 
@@ -171,10 +195,10 @@ void GraphEdge::renderNone()
 
 bool GraphEdge::isTouched(int x, int y) {
 	if (slope > 0) {
-		return ((y <= slope * (x + 12) + b + 12 && y >= slope * (x - 12) + b - 12)) && ((y > ymin && y < ymax) || (x > xmin && x < xmax));
+		return  ((y > ymin && y < ymax) || (x > xmin && x < xmax)) && ((y <= slope * (x + 12) + b + 12 && y >= slope * (x - 12) + b - 12));
 	}
 	else {
-		return ((y <= slope * (x - 12) + b + 12 && y >= slope * (x + 12) + b - 12)) && ((y > ymin && y < ymax) || (x > xmin && x < xmax));
+		return  ((y > ymin && y < ymax) || (x > xmin && x < xmax)) && ((y <= slope * (x - 12) + b + 12 && y >= slope * (x + 12) + b - 12));
 	}
 }
 
@@ -205,6 +229,23 @@ bool GraphEdge::containsNode(GraphNode* node) {
 	return node1 == node || node2 == node;
 }
 
+bool GraphEdge::isSwitchedOn()
+{
+	return isSwitched;
+}
+
+bool GraphEdge::isSwitchTouched(int x, int y)
+{
+	Vec2 mid = (from + to) / 2;
+	return (mid.x - x) * (mid.y - y) <= 30 * 30;
+}
+
+bool GraphEdge::isSwitchTouched(Vec2 pos)
+{
+	Vec2 mid = (from + to) / 2;
+	return (mid - pos).mag2() <= 30 * 30;
+}
+
 void GraphEdge::update() {
 	//updates information about node1 and node2 after any movement.
 
@@ -216,16 +257,11 @@ void GraphEdge::update() {
 	this->unitY = line.y / mag;
 
 
-	if (node1->getX() == node2->getX()) {
-		node1->setPos(node1->getX() + 1, node1->getY());
-	}
-
 	ymin = min(node1->getY(), node2->getY());
 	ymax = max(node1->getY(), node2->getY());
 	xmin = min(node1->getX(), node2->getX());
 	xmax = max(node1->getX(), node2->getX());
-	slope = (double)(node2->getY() - node1->getY()) / (node2->getX() - node1->getX());
-	b = (int)(-1 * slope * node1->getX() + node1->getY());
+	
 
 	double fromX = node1->getX(), fromY = node1->getY();
 	switch (node1->getType()) {
@@ -267,4 +303,6 @@ void GraphEdge::update() {
 	this->to.x = (int)toX;
 	this->to.y = (int)toY;
 
+	slope = (double)(to.y - from.y) / (to.x - from.x + (to.x == from.x ? 1 : 0));
+	b = (int)(from.y - slope * from.x);
 }

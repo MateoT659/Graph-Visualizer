@@ -82,6 +82,25 @@ void drawArrow(int x1, int y1, int x2, int y2, SDL_Color color) {
 	}
 }
 
+void drawCircle(Vec2 pos, int radius) {
+	drawCircle(pos.x, pos.y, radius);
+}
+
+void drawCircle(int cx, int cy, int radius) {
+	for (int w = 0; w < radius * 2; w++)
+	{
+		for (int h = 0; h < radius * 2; h++)
+		{
+			int dx = radius - w; // horizontal offset
+			int dy = radius - h; // vertical offset
+			if ((dx * dx + dy * dy) <= (radius * radius))
+			{
+				drawPoint((int)cx + dx, (int)cy + dy);
+			}
+		}
+	}
+}
+
 void updateIcons() {
 	icons[1]->setIcon(edgeIcons[(int)edgeType]->getIcon());
 	icons[0]->setIcon(nodeIcons[(int)ghost->getType()]->getIcon());
@@ -115,6 +134,10 @@ void render(bool showGhost) {
 
 	for (int i = 0; i < edges.size(); i++) {
 		edges[i]->render();
+	}
+
+	for (int i = 0; i < freeEdges.size(); i++) {
+		freeEdges[i]->render();
 	}
 
 	for (int i = 0; i < nodes.size(); i++) {

@@ -37,6 +37,7 @@ public:
 	Vec2 operator*(double); //float multiplication
 	Vec2 operator/(double); //float div
 	Vec2 operator*(int); //int multiplication
+	bool operator==(Vec2);
 
 	std::string toString();
 };

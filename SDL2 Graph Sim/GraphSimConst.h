@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <windows.h>
 #include <sstream>
 #include <fstream>
@@ -12,8 +13,10 @@
 
 class GraphNode;
 class GraphEdge;
+class FreeEdge;
 class Image;
 class Icon;
+
 
 typedef enum NodeType {
 	Filled, Skeleton, Cross, FilledSq, OpenSq, CrossSq
@@ -21,9 +24,9 @@ typedef enum NodeType {
 const int nodeTypeTotal = 6;
 
 typedef enum EdgeType {
-	None, Directed, Resistance, Dashed, Dotted
+	None, Directed, Resistance, Dashed, Dotted, Switch
 } EdgeType;
-const int edgeTypeTotal = 5;
+const int edgeTypeTotal = 6;
 
 const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 1000;
@@ -52,6 +55,9 @@ extern SDL_Renderer* renderer;
 extern GraphNode* ghost;
 extern std::vector<GraphNode*> nodes;
 extern std::vector<GraphEdge*> edges;
+extern std::unordered_set<GraphEdge*> switches;
+extern std::vector<FreeEdge*> freeEdges;
+extern std::unordered_set<FreeEdge*> fswitches;
 
 extern bool running;
 
@@ -82,6 +88,8 @@ bool rectIsTouched(SDL_Rect rect, int x, int y);
 bool rectIsTouched(SDL_Rect rect, Vec2 pos);
 
 //graphics.cpp
+void drawCircle(Vec2 pos, int radius);
+void drawCircle(int cx, int cy, int radius);
 void setRenderColor(SDL_Color color);
 void setRenderColor(SDL_Color rgbColor, int alpha);
 void setRenderColor(int r, int g, int b, int alpha);

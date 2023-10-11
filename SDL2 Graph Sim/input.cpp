@@ -9,6 +9,7 @@ void openEdgeMenu(SDL_Event*);
 void updateHoverStatus(Vec2 mousePos, std::vector<Icon*> iconVec);
 void parseMenuClick(Vec2 mousePos, SDL_Event * event); 
 void adjustGhostSize(SDL_Event* event);
+bool checkSwitchEdges(Vec2 mousePos);
 
 void parseEvent(SDL_Event* event) {
 	Vec2 mousePos = getMousePos();
@@ -39,10 +40,12 @@ void parseEvent(SDL_Event* event) {
 				switch (selectedInd) {
 				case 0:
 				case 1:
-					createObject(event, mousePos);
+					if(!checkSwitchEdges(mousePos))
+						createObject(event, mousePos);
 					break;
 				case 2:
-					dragNode(event, SDL_BUTTON_LEFT, mousePos);
+					if (!checkSwitchEdges(mousePos))
+						dragNode(event, SDL_BUTTON_LEFT, mousePos);
 					break;
 				case 3:
 					deleteObject(mousePos);
@@ -56,7 +59,8 @@ void parseEvent(SDL_Event* event) {
 			break;
 
 		case SDL_BUTTON_MIDDLE:
-			dragNode(event, SDL_BUTTON_MIDDLE, mousePos);
+			if(!checkSwitchEdges(mousePos))
+				dragNode(event, SDL_BUTTON_MIDDLE, mousePos);
 			break;
 		}
 		break;
@@ -71,6 +75,23 @@ void parseEvent(SDL_Event* event) {
 			adjustGhostSize(event);
 		}
 	}
+}
+
+bool checkSwitchEdges(Vec2 mousePos) {
+	bool ret = false;
+	for (GraphEdge *edge : switches) {
+		if (edge->isSwitchTouched(mousePos)) {
+			edge->toggleSwitch();
+			ret = true;
+		}
+	}
+	for (FreeEdge* edge : fswitches) {
+		if (edge->isSwitchTouched(mousePos)) {
+			edge->toggleSwitch();
+			ret = true;
+		}
+	}
+	return ret;
 }
 
 void openNodeMenu(SDL_Event* event) {
@@ -183,10 +204,27 @@ void createObject(SDL_Event* event, Vec2 mousePos) {
 
 		if (n2 != -1 && n2 != n1) {
 			edges.push_back(new GraphEdge(nodes[n1], nodes[n2], currentColor, edgeType));
+			if (edgeType == Switch) {
+				switches.insert(edges[edges.size() - 1]);
+			}
 		}
 	}
 	else {
-		nodes.push_back(ghost->copy());
+		while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_LEFT)) {
+			SDL_PollEvent(event);
+		}
+		Vec2 mousepos2 = getMousePos();
+		
+		if (ghost->containsPoint(mousepos2)){ 
+			nodes.push_back(ghost->copy());
+		}
+		else {
+			freeEdges.push_back(new FreeEdge(mousePos, mousepos2, currentColor, edgeType));
+			if (edgeType == Switch) {
+				fswitches.insert(freeEdges[freeEdges.size() - 1]);
+			}
+		}
+		ghost->setPos(mousepos2);
 	}
 }
 void deleteObject(Vec2 mousePos) {
@@ -197,6 +235,9 @@ void deleteObject(Vec2 mousePos) {
 			for (int j = 0; j < edges.size();) {
 				if (edges[j]->containsNode(nodes[i])) {
 					GraphEdge *toDelete = edges[j];
+					if (toDelete->getType() == Switch) {
+						switches.erase(toDelete);
+					}
 					edges.erase((edges.begin() + j));
 					delete toDelete;
 				}
@@ -216,7 +257,23 @@ void deleteObject(Vec2 mousePos) {
 	for (int i = 0; i < edges.size();) {
 		if (edges[i]->isTouched(mousePos)) {
 			GraphEdge* toDelete = edges[i];
+			if (toDelete->getType() == Switch) {
+				switches.erase(toDelete);
+			}
 			edges.erase(edges.begin() + i);
+			delete toDelete;
+		}
+		else {
+			i++;
+		}
+	}
+	for (int i = 0; i < freeEdges.size();) {
+		if (freeEdges[i]->isTouched(mousePos)) {
+			FreeEdge* toDelete = freeEdges[i];
+			if (toDelete->getType() == Switch) {
+				fswitches.erase(toDelete);
+			}
+			freeEdges.erase(freeEdges.begin() + i);
 			delete toDelete;
 		}
 		else {

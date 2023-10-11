@@ -182,7 +182,9 @@ void openFile() {
 	GraphNode* fileGhost;
 	std::vector<GraphNode*> fileNodes;
 	std::vector<GraphEdge*> fileEdges;
-
+	std::vector<FreeEdge*> fileFreeEdges;
+	std::unordered_set<GraphEdge*> fileSwitches;
+	std::unordered_set<FreeEdge*> fileFSwitches;
 	inStream.open(filename);
 	std::getline(inStream, line);
 
@@ -200,7 +202,7 @@ void openFile() {
 	catch (...) {
 		return;
 	}
-	if (num < 0 || num>=edgeTypeTotal) return;
+	if (num < 0 || num >= edgeTypeTotal) return;
 	fileEdgeType = (EdgeType)num;
 	//ghost
 	try {
@@ -218,13 +220,13 @@ void openFile() {
 	int x, y, radius, type;
 	while (!error && getline(inStream, line) && line.size() != 0) {
 		std::stringstream strStream(line);
-		
+
 		while (strStream >> word) wordVec.push_back(word);
 
-		if (wordVec.size() != 5){
+		if (wordVec.size() != 5) {
 			return;
 		}
-		
+
 		try {
 			x = stoi(wordVec[0]);
 			y = stoi(wordVec[1]);
@@ -234,9 +236,9 @@ void openFile() {
 		catch (...) {
 			return;
 		}
-		if (x<0 || x>=SCREEN_WIDTH) return;
-		if (y<0 || y>=SCREEN_HEIGHT) return;
-		if (type<0 || type>=nodeTypeTotal) return;
+		if (x < 0 || x >= SCREEN_WIDTH) return;
+		if (y < 0 || y >= SCREEN_HEIGHT) return;
+		if (type < 0 || type >= nodeTypeTotal) return;
 
 		fileNodes.push_back(new GraphNode(x, y, radius, hexToColor(wordVec[3]), (NodeType)type));
 
@@ -245,12 +247,12 @@ void openFile() {
 
 	//edges
 	int ind1, ind2, etype;
-	while (!error && getline(inStream, line)) {
+	while (!error && getline(inStream, line) && line.size() != 0) {
 		std::stringstream strStream(line);
 
 		while (strStream >> word) wordVec.push_back(word);
 
-		if (wordVec.size() != 4) return;
+		if (wordVec.size() < 4) return;
 
 		try {
 			ind1 = stoi(wordVec[0]);
@@ -266,9 +268,61 @@ void openFile() {
 
 		fileEdges.push_back(new GraphEdge(fileNodes[ind1], fileNodes[ind2], hexToColor(wordVec[2]), (EdgeType)etype));
 
+		if (etype == (int)Switch) {
+			fileSwitches.insert(fileEdges[fileEdges.size() - 1]);
+			try {
+				if (wordVec[4] == "1"){
+
+					fileEdges[fileEdges.size() - 1]->toggleSwitch();
+				}
+			}
+			catch (...) {
+				return;
+			}
+		}
+
 		wordVec.clear();
 	}
+	int fx, fy, tx, ty;
+	//free edges
+	while (!error && getline(inStream, line) && line.size() != 0) {
+		std::stringstream strStream(line);
 
+		while (strStream >> word) wordVec.push_back(word);
+
+		if (wordVec.size() < 6) return;
+	
+		try {
+			fx = stoi(wordVec[0]);
+			fy = stoi(wordVec[1]);
+			tx = stoi(wordVec[2]);
+			ty = stoi(wordVec[3]);
+			etype = stoi(wordVec[5]);
+		}
+		catch (...) {
+			return;
+		}
+
+		if (etype < 0 || etype >= edgeTypeTotal) return;
+
+		fileFreeEdges.push_back(new FreeEdge(fx, fy, tx, ty, hexToColor(wordVec[4]), (EdgeType)etype));
+
+		if (etype == (int)Switch) {
+			fileFSwitches.insert(fileFreeEdges[fileFreeEdges.size() - 1]);
+			try {
+				if (wordVec[6] == "1") {
+
+					fileFreeEdges[fileFreeEdges.size() - 1]->toggleSwitch();
+				}
+			}
+			catch (...) {
+				return;
+			}
+		}
+
+		wordVec.clear();
+	}
+	
 	inStream.close();
 	if (error) return;
 
@@ -284,21 +338,27 @@ void openFile() {
 		delete edge;
 	}
 	edges.clear();
+	for (FreeEdge* edge : freeEdges) {
+		delete edge;
+	}
+	freeEdges.clear();
 
 	nodes = fileNodes;
 	edges = fileEdges;
+	freeEdges = fileFreeEdges;
+	switches.clear();
+	switches = fileSwitches;
+	fswitches.clear();
+	fswitches = fileFSwitches;
+
 	currentFilepath = filename;
 
 	updateIcons();
 }
-void saveAsFile() {
-	//use ofstream to save current status to file
+
+void saveTo(std::string filename) {
 	std::ofstream outStream;
-	std::string filename, line, word;
-	filename = getSavePath();
-	if (filename == "ERROR") {
-		return;
-	}
+	std::string line, word;
 	outStream.open(filename);
 
 	//currentColor
@@ -329,19 +389,43 @@ void saveAsFile() {
 		outStream << indexMap[edges[i]->getNode1()] << " "
 			<< indexMap[edges[i]->getNode2()] << " "
 			<< toHex(edges[i]->getColor()) << " "
-			<< (int)edges[i]->getType() << "\n";
+			<< (int)edges[i]->getType();
+		if (edges[i]->getType() == Switch) {
+			outStream << " " << edges[i]->isSwitchedOn() ? "1" : "0";
+		}
+		outStream << "\n";
 	}
 
+	outStream << "\n";
+
+	for (int i = 0; i < freeEdges.size(); i++) {
+		outStream << freeEdges[i]->getFrom().x << " " << freeEdges[i]->getFrom().y << " "
+			<< freeEdges[i]->getTo().x << " " << freeEdges[i]->getTo().y << " "
+			<< toHex(freeEdges[i]->getColor()) << " "
+			<< (int)freeEdges[i]->getType();
+		if (freeEdges[i]->getType() == Switch) {
+			outStream << " " << freeEdges[i]->isSwitchedOn() ? "1" : "0";
+		}
+		outStream << "\n";
+	}
 	currentFilepath = filename;
 
-
 	outStream.close();
+}
+
+void saveAsFile() {
+	//use ofstream to save current status to file
+	
+	std::string filename = getSavePath();
+	if (filename == "ERROR") {
+		return;
+	}
+	saveTo(filename);
 }
 void saveFile() {
 	//use ofstream to save current status to file
 	
-	std::ofstream outStream;
-	std::string filename, line, word;
+	std::string filename;
 	if (currentFilepath == "None") {
 		filename = getSavePath();
 		if (filename == "ERROR") {
@@ -351,40 +435,6 @@ void saveFile() {
 	else {
 		filename = currentFilepath;
 	}
-	outStream.open(filename);
-	
-	//currentColor
-	outStream << toHex(currentColor) << " ";
-
-	//edgeType
-	outStream << (int)edgeType << " ";
-
-	//ghost nodeType
-	outStream << (int)(ghost->getType()) << "\n";
-
-	std::unordered_map<GraphNode*,int> indexMap;
-	//input all nodes on seperate lines: x, y, radius, color, type, 
-	for (int i = 0; i < nodes.size(); i++) {
-		outStream << nodes[i]->getX() << " "
-			<< nodes[i]->getY() << " "
-			<< nodes[i]->getRadius() << " "
-			<< toHex(nodes[i]->getColor()) << " "
-			<< nodes[i]->getType() << "\n";
-		indexMap[nodes[i]] = i;
-	}
-
-	outStream << "\n";
-
-	//input all edges on seperate lines: ind1, ind2, color, type
-
-	for (int i = 0; i < edges.size(); i++) {
-		outStream << indexMap[edges[i]->getNode1()] << " "
-			<< indexMap[edges[i]->getNode2()] << " "
-			<< toHex(edges[i]->getColor()) << " "
-			<< (int)edges[i]->getType() << "\n";
-	}
-
-	currentFilepath = filename;
-
-	outStream.close();
+	saveTo(filename);
 }
+

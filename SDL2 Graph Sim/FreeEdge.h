@@ -1,39 +1,36 @@
 #pragma once
 #include "GraphSimConst.h"
-#include "GraphNode.h"
-
-class GraphEdge
+class FreeEdge
 {
 private:
-	GraphNode* node1;
-	GraphNode* node2;
+	Vec2 from;
+	Vec2 to;
 	SDL_Color color;
 	EdgeType type;
 	double unitX, unitY;
-	
+
 	void renderSwitch();
 	void renderDotted();
 	void renderDashed();
 	void renderResist();
 	void renderDirected();
 	void renderNone();
-	
-	Vec2 to, from;
+
 	double slope;
 	int b, ymin, ymax, xmin, xmax;
 	bool isSwitched;
 
 public:
-	GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color, EdgeType type);
-	GraphNode* getNode1();
-	GraphNode* getNode2();
+	FreeEdge(Vec2 from, Vec2 to, SDL_Color color, EdgeType type);
+	FreeEdge(int fx, int fy, int tx, int ty, SDL_Color color, EdgeType type);
+	Vec2 getFrom();
+	Vec2 getTo();
 	SDL_Color getColor();
 	void setColor(SDL_Color color);
 
 	EdgeType getType();
-	
-	void update();
-	bool containsNode(GraphNode* node);
+
+	bool connectedTo(Vec2 point);
 	bool isSwitchedOn();
 	bool isSwitchTouched(int x, int y);
 	bool isSwitchTouched(Vec2 pos);
