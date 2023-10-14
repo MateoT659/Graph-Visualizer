@@ -30,6 +30,8 @@ public:
 
 	EdgeType getType();
 
+	void translateBy(Vec2 vec);
+
 	bool connectedTo(Vec2 point);
 	bool isSwitchedOn();
 	bool isSwitchTouched(int x, int y);
@@ -38,5 +40,7 @@ public:
 	void render(void);
 	bool isTouched(int x, int y);
 	bool isTouched(Vec2 pos);
+	void update();
+	FreeEdge* copy();
 };
 

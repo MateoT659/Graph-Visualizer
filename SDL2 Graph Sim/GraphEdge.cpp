@@ -229,6 +229,15 @@ bool GraphEdge::containsNode(GraphNode* node) {
 	return node1 == node || node2 == node;
 }
 
+bool GraphEdge::isFrom(GraphNode* node)
+{
+	return node == node1;
+}
+
+bool GraphEdge::isTo(GraphNode* node) {
+	return node == node2;
+}
+
 bool GraphEdge::isSwitchedOn()
 {
 	return isSwitched;

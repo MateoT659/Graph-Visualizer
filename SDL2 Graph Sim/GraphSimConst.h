@@ -86,6 +86,8 @@ void parseEvent(SDL_Event* event);
 Vec2 getMousePos();
 bool rectIsTouched(SDL_Rect rect, int x, int y);
 bool rectIsTouched(SDL_Rect rect, Vec2 pos);
+bool lineIntersectsLine(Vec2 v1, Vec2 v2, Vec2 u1, Vec2 u2);
+bool lineIntersectsRect(SDL_Rect rect, Vec2 p1, Vec2 p2);
 
 //graphics.cpp
 void drawCircle(Vec2 pos, int radius);
@@ -103,6 +105,8 @@ void drawFilledRectangle(SDL_Rect rect, SDL_Color color);
 void drawFilledRectangle(int x, int y, int w, int h);
 void drawFilledRectangle(SDL_Rect rect);
 void render(bool showGhost);
+void renderObjects(bool showGhost);
+void renderInterface();
 void renderU(bool showGhost);
 void updateIcons();
 SDL_Texture* loadTexture(std::string filepath);

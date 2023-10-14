@@ -31,22 +31,18 @@ void drawLine(Vec2 point1, Vec2 point2) {
 
 void drawFilledRectangle(SDL_Rect rect, SDL_Color color) {
 	setRenderColor(color);
-
-	int xlim = rect.x + rect.w;
-	int ylim = rect.y + rect.h;
-
-	while ((rect.w > 0 && rect.h > 0)) {
-		SDL_RenderDrawRect(renderer, &rect);
-		rect.x++;
-		rect.y++;
-		rect.h -= 2;
-		rect.w -= 2;
-	}
+	drawFilledRectangle(rect);
 }
 void drawFilledRectangle(SDL_Rect rect) {
 
-	int xlim = rect.x + rect.w;
-	int ylim = rect.y + rect.h;
+	if (rect.w < 0) {
+		rect.x += rect.w;
+		rect.w *= -1;
+	}
+	if (rect.h < 0) {
+		rect.y += rect.h;
+		rect.h *= -1;
+	}
 
 	while ((rect.w > 0 && rect.h > 0)) {
 		SDL_RenderDrawRect(renderer, &rect);
@@ -147,6 +143,35 @@ void render(bool showGhost) {
 	if (showGhost)
 		ghost->render();
 
+	sidebar->render();
+
+	for (int i = 0; i < icons.size(); i++) {
+		icons[i]->render();
+	}
+
+	drawFilledRectangle(colorBox, currentColor);
+}
+
+void renderObjects(bool showGhost) {
+	clearScreen(BLACK);
+
+	for (int i = 0; i < edges.size(); i++) {
+		edges[i]->render();
+	}
+
+	for (int i = 0; i < freeEdges.size(); i++) {
+		freeEdges[i]->render();
+	}
+
+	for (int i = 0; i < nodes.size(); i++) {
+		nodes[i]->render();
+	}
+
+	if (showGhost)
+		ghost->render();
+}
+
+void renderInterface() {
 	sidebar->render();
 
 	for (int i = 0; i < icons.size(); i++) {

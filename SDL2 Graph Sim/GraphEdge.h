@@ -34,6 +34,8 @@ public:
 	
 	void update();
 	bool containsNode(GraphNode* node);
+	bool isFrom(GraphNode* node);
+	bool isTo(GraphNode* node);
 	bool isSwitchedOn();
 	bool isSwitchTouched(int x, int y);
 	bool isSwitchTouched(Vec2 pos);

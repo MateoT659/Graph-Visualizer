@@ -1,9 +1,10 @@
 #include "Includes.h"
 
 void createObject(SDL_Event*, Vec2 mousePos);
-void deleteObject(Vec2 mousePos);
+void deleteObject(Vec2 mousePos, SDL_Event* event, Uint8 button);
 void parseKey(SDL_Event*);
 void dragNode(SDL_Event*, Uint8 button, Vec2 mousePos);
+void copyObject(SDL_Event*, Uint8 button, Vec2 mousePos);
 void openNodeMenu(SDL_Event*);
 void openEdgeMenu(SDL_Event*);
 void updateHoverStatus(Vec2 mousePos, std::vector<Icon*> iconVec);
@@ -48,14 +49,17 @@ void parseEvent(SDL_Event* event) {
 						dragNode(event, SDL_BUTTON_LEFT, mousePos);
 					break;
 				case 3:
-					deleteObject(mousePos);
+					deleteObject(mousePos, event, SDL_BUTTON_LEFT);
+					break;
+				case 4:
+					copyObject(event, SDL_BUTTON_LEFT, mousePos);
 					break;
 				}
 			}
 			break;
 
 		case SDL_BUTTON_RIGHT:
-			deleteObject(mousePos);
+			deleteObject(mousePos, event, SDL_BUTTON_RIGHT);
 			break;
 
 		case SDL_BUTTON_MIDDLE:
@@ -227,57 +231,62 @@ void createObject(SDL_Event* event, Vec2 mousePos) {
 		ghost->setPos(mousepos2);
 	}
 }
-void deleteObject(Vec2 mousePos) {
+void deleteObject(Vec2 mousePos, SDL_Event* event, Uint8 button) {
 	// deletes any nodes or edges touched
-
-	for (int i = 0; i < nodes.size();) {
-		if (nodes[i]->containsPoint(mousePos)) {
-			for (int j = 0; j < edges.size();) {
-				if (edges[j]->containsNode(nodes[i])) {
-					GraphEdge *toDelete = edges[j];
-					if (toDelete->getType() == Switch) {
-						switches.erase(toDelete);
+	while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)) {
+		if (SDL_PollEvent(event)) {
+			mousePos = getMousePos();
+			for (int i = 0; i < nodes.size();) {
+				if (nodes[i]->containsPoint(mousePos)) {
+					for (int j = 0; j < edges.size();) {
+						if (edges[j]->containsNode(nodes[i])) {
+							GraphEdge* toDelete = edges[j];
+							if (toDelete->getType() == Switch) {
+								switches.erase(toDelete);
+							}
+							edges.erase((edges.begin() + j));
+							delete toDelete;
+						}
+						else {
+							j++;
+						}
 					}
-					edges.erase((edges.begin() + j));
+					GraphNode* toDelete = nodes[i];
+					nodes.erase(nodes.begin() + i);
 					delete toDelete;
 				}
 				else {
-					j++;
+					i++;
 				}
 			}
-			GraphNode* toDelete = nodes[i];
-			nodes.erase(nodes.begin() + i);
-			delete toDelete;
-		}
-		else {
-			i++;
-		}
-	}
 
-	for (int i = 0; i < edges.size();) {
-		if (edges[i]->isTouched(mousePos)) {
-			GraphEdge* toDelete = edges[i];
-			if (toDelete->getType() == Switch) {
-				switches.erase(toDelete);
+			for (int i = 0; i < edges.size();) {
+				if (edges[i]->isTouched(mousePos)) {
+					GraphEdge* toDelete = edges[i];
+					if (toDelete->getType() == Switch) {
+						switches.erase(toDelete);
+					}
+					edges.erase(edges.begin() + i);
+					delete toDelete;
+				}
+				else {
+					i++;
+				}
 			}
-			edges.erase(edges.begin() + i);
-			delete toDelete;
-		}
-		else {
-			i++;
-		}
-	}
-	for (int i = 0; i < freeEdges.size();) {
-		if (freeEdges[i]->isTouched(mousePos)) {
-			FreeEdge* toDelete = freeEdges[i];
-			if (toDelete->getType() == Switch) {
-				fswitches.erase(toDelete);
+			for (int i = 0; i < freeEdges.size();) {
+				if (freeEdges[i]->isTouched(mousePos)) {
+					FreeEdge* toDelete = freeEdges[i];
+					if (toDelete->getType() == Switch) {
+						fswitches.erase(toDelete);
+					}
+					freeEdges.erase(freeEdges.begin() + i);
+					delete toDelete;
+				}
+				else {
+					i++;
+				}
 			}
-			freeEdges.erase(freeEdges.begin() + i);
-			delete toDelete;
-		}
-		else {
-			i++;
+			renderU(false);
 		}
 	}
 }
@@ -292,32 +301,417 @@ void dragNode(SDL_Event* event, Uint8 button, Vec2 mousePos) {
 		}
 	}
 
-	if (toMove == nullptr) return;
-
-	std::vector<GraphEdge*> toUpdate;
-
-	// finds connected edges
-	for (int i = 0; i < edges.size(); i++) {
-		if (edges[i]->containsNode(toMove)) {
-			toUpdate.push_back(edges[i]);
-		}
-	}
-
-	// waits for click to release
-	while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)){
-		if (SDL_PollEvent(event)) {
-			SDL_GetMouseState(toMove->getXaddr(), toMove->getYaddr());
-			for (int i = 0; i < toUpdate.size(); i++) {
-				toUpdate[i]->update();
+	if (toMove == nullptr) {
+		FreeEdge* freeMove = nullptr;
+		for (int i = 0; i < freeEdges.size() && freeMove == nullptr; i++) {
+			if (freeEdges[i]->isTouched(mousePos)) {
+				freeMove = freeEdges[i];
 			}
-			renderU(false);
+		}
+
+		if (freeMove == nullptr) {
+			//make the box
+			Vec2 mousePos2;
+			SDL_Rect selectBox = { mousePos.x, mousePos.y, 0, 0 };
+			while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)) {
+				if (SDL_PollEvent(event)) {
+					mousePos2 = getMousePos();
+					selectBox.w = mousePos2.x - mousePos.x;
+					selectBox.h = mousePos2.y - mousePos.y;
+					renderObjects(false);
+					drawFilledRectangle(selectBox, { 137, 207, 240 , 150 });
+					renderInterface();
+					SDL_RenderPresent(renderer);
+				}
+			}
+
+			//next: include free edges in the box selection
+
+			std::unordered_set<GraphNode*> touched;
+			std::unordered_set<FreeEdge*> ftouched;
+
+			for (int i = 0; i < nodes.size(); i++) {
+				if (rectIsTouched(selectBox, nodes[i]->getPos())) {
+					touched.insert(nodes[i]);
+				}
+			}
+			for (int i = 0; i < freeEdges.size(); i++) {
+				if (lineIntersectsRect(selectBox, freeEdges[i]->getFrom(), freeEdges[i]->getTo())) {
+					ftouched.insert(freeEdges[i]);
+				}
+			}
+			if (touched.size() == 0 && ftouched.size() == 0) {
+				return;
+			}
+			while (event->type != SDL_MOUSEBUTTONDOWN) {
+				SDL_PollEvent(event);
+			}
+			mousePos = getMousePos();
+			bool isNodeTouched = false;
+			for (GraphNode* node : touched) {
+				isNodeTouched = isNodeTouched || node->containsPoint(mousePos);
+			}
+			for (FreeEdge* edge : ftouched) {
+				isNodeTouched = isNodeTouched || edge->isTouched(mousePos);
+			}
+			if (!isNodeTouched) {
+				return;
+			}
+
+			switch (event->button.button) {
+			case SDL_BUTTON_LEFT:
+				//find all nodes in square. move them all by a set amount
+				while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_LEFT)) {
+					if (SDL_PollEvent(event)) {
+						mousePos2 = getMousePos();
+						for (GraphNode* node : touched) {
+							node->setPos(node->getPos() + mousePos2 - mousePos);
+						}
+						for (GraphEdge* edge : edges) {
+							edge->update();
+						}
+						for (FreeEdge* edge : ftouched) {
+							edge->translateBy(mousePos2 - mousePos);
+						}
+						renderU(false);
+						mousePos = getMousePos();
+					}
+				}
+				break;
+			case SDL_BUTTON_RIGHT:
+				//delete all nodes in the square
+				for (int i = 0; i < nodes.size();) {
+					if (touched.find(nodes[i]) != touched.end()) {
+						for (int j = 0; j < edges.size();) {
+							if (edges[j]->containsNode(nodes[i])) {
+								GraphEdge* toDelete = edges[j];
+								if (toDelete->getType() == Switch) {
+									switches.erase(toDelete);
+								}
+								edges.erase((edges.begin() + j));
+								delete toDelete;
+							}
+							else {
+								j++;
+							}
+						}
+						GraphNode* toDelete = nodes[i];
+						nodes.erase(nodes.begin() + i);
+						delete toDelete;
+					}
+					else {
+						i++;
+					}
+				}
+				for (int i = 0; i < freeEdges.size();) {
+					if (ftouched.find(freeEdges[i]) != ftouched.end()) {
+						FreeEdge* toDelete = freeEdges[i];
+						if (toDelete->getType() == Switch) {
+							fswitches.erase(toDelete);
+						}
+						freeEdges.erase((freeEdges.begin() + i));
+						delete toDelete;
+					}
+					else {
+						i++;
+					}
+				}
+				break;
+			case SDL_BUTTON_MIDDLE:
+				std::vector<GraphNode*> copies;
+				std::vector<GraphEdge*> eCopies;
+				std::vector<FreeEdge*> fCopies;
+				std::vector<GraphNode*> touchedVec(touched.begin(), touched.end());
+				for (int i = 0; i < touchedVec.size(); i++) {
+					copies.push_back(touchedVec[i]->copy());
+				}
+				for (int i = 0; i < touchedVec.size(); i++) {
+					for (int j = 0; j < edges.size(); j++) {
+						if (edges[j]->isFrom(touchedVec[i])) {
+							for (int k = 0; k < copies.size(); k++) {
+								if (edges[j]->isTo(touchedVec[k])) {
+									eCopies.push_back(new GraphEdge(copies[i], copies[k], edges[j]->getColor(), edges[j]->getType()));
+									if (edges[j]->getType() == Switch) {
+										switches.insert(eCopies[eCopies.size() - 1]);
+										if (edges[j]->isSwitchedOn()) {
+											eCopies[eCopies.size() - 1]->toggleSwitch();
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				for (FreeEdge* edge : ftouched) {
+					fCopies.push_back(edge->copy());
+					if (edge->getType() == Switch) {
+						fswitches.insert(fCopies[fCopies.size() - 1]);
+					}
+				}
+				for (GraphNode* node : copies) nodes.push_back(node);
+				for (GraphEdge* edge : eCopies) edges.push_back(edge);
+				for (FreeEdge* edge : fCopies) freeEdges.push_back(edge);
+				while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == SDL_BUTTON_MIDDLE)) {
+					if (SDL_PollEvent(event)) {
+						mousePos2 = getMousePos();
+						for (GraphNode* node : copies) {
+							node->setPos(node->getPos() + mousePos2 - mousePos);
+						}
+						for (GraphEdge* edge : eCopies) {
+							edge->update();
+						}
+						for (FreeEdge* edge : fCopies) {
+							edge->translateBy(mousePos2 - mousePos);
+						}
+						renderU(false);
+						mousePos = getMousePos();
+					}
+				}
+				break;
+			}
+		}
+		else {
+			Vec2 mousePos2 = getMousePos();
+			while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)) {
+				if (SDL_PollEvent(event)) {
+					mousePos = getMousePos();
+					freeMove->translateBy(mousePos - mousePos2);
+
+					renderU(false);
+					mousePos2 = getMousePos();
+
+				}
+			}
+			SDL_GetMouseState(ghost->getXaddr(), ghost->getYaddr());
+		}
+		//if you press right click (ON A NODE), delete all nodes in the box and connected edges.
+		//if you press left click (ON A NODE), move nodes and connected edges
+		//if you press middle click (ON A NODE), copy nodes and connected edges and then move their copies
+		//then, find the edges connected to those nodes(or i could update all of the edges every time might be better)
+		
+	}
+	else {
+		//move the node
+		std::vector<GraphEdge*> toUpdate;
+
+		// finds connected edges
+		for (int i = 0; i < edges.size(); i++) {
+			if (edges[i]->containsNode(toMove)) {
+				toUpdate.push_back(edges[i]);
+			}
+		}
+
+		// waits for click to release
+		while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)) {
+			if (SDL_PollEvent(event)) {
+				SDL_GetMouseState(toMove->getXaddr(), toMove->getYaddr());
+				for (int i = 0; i < toUpdate.size(); i++) {
+					toUpdate[i]->update();
+				}
+				renderU(false);
+			}
+		}
+
+		// updates any connected nodes
+		for (int i = 0; i < toUpdate.size(); i++) {
+			toUpdate[i]->update();
 		}
 	}
-	SDL_GetMouseState(ghost->getXaddr(), ghost->getYaddr());
+	ghost->setPos(getMousePos());
+}
 
-	// updates any connected nodes
-	for (int i = 0; i < toUpdate.size(); i++) {
-		toUpdate[i]->update();
+void copyObject(SDL_Event* event, Uint8 button, Vec2 mousePos)
+{
+	GraphNode *nToCopy = nullptr;
+	for (int i = 0; i < nodes.size() && nToCopy == nullptr; i++) {
+		if (nodes[i]->containsPoint(mousePos)) {
+			nToCopy = nodes[i];
+		}
+	}
+
+	if (nToCopy != nullptr) {
+		//copy the node and move it around
+		GraphNode* copy = nToCopy->copy();
+		nodes.push_back(copy);
+		while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)) {
+			if (SDL_PollEvent(event)) {
+				SDL_GetMouseState(copy->getXaddr(), copy->getYaddr());
+				renderU(false);
+			}
+		}
+		ghost->setPos(getMousePos());
+	}
+	else {
+		FreeEdge* fToCopy = nullptr;
+		for (int i = 0; i < freeEdges.size() && fToCopy == nullptr; i++) {
+			if (freeEdges[i]->isTouched(mousePos)) {
+				fToCopy = freeEdges[i];
+			}
+		}
+		if (fToCopy != nullptr) {
+			//copy the edge and move it around
+			FreeEdge* copy = fToCopy->copy();
+			if (copy->getType() == Switch) {
+				fswitches.insert(copy);
+			}
+			Vec2 mousePos2 = getMousePos();
+			freeEdges.push_back(copy);
+			while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)) {
+				if (SDL_PollEvent(event)) {
+					mousePos = getMousePos();
+					copy->translateBy(mousePos - mousePos2);
+					renderU(false);
+					mousePos2 = getMousePos();
+				}
+			}
+			ghost->setPos(getMousePos());
+		}
+		else {
+			//make box and do box copy (do this part after adding free edges to box selection)
+			//make the box
+			Vec2 mousePos2;
+			SDL_Rect selectBox = { mousePos.x, mousePos.y, 0, 0 };
+			while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)) {
+				if (SDL_PollEvent(event)) {
+					mousePos2 = getMousePos();
+					selectBox.w = mousePos2.x - mousePos.x;
+					selectBox.h = mousePos2.y - mousePos.y;
+					renderObjects(false);
+					drawFilledRectangle(selectBox, { 137, 207, 240 , 150 });
+					renderInterface();
+					SDL_RenderPresent(renderer);
+				}
+			}
+
+			//next: include free edges in the box selection
+
+			std::unordered_set<GraphNode*> touched;
+			std::unordered_set<FreeEdge*> ftouched;
+
+			for (int i = 0; i < nodes.size(); i++) {
+				if (rectIsTouched(selectBox, nodes[i]->getPos())) {
+					touched.insert(nodes[i]);
+				}
+			}
+			for (int i = 0; i < freeEdges.size(); i++) {
+				if (lineIntersectsRect(selectBox, freeEdges[i]->getFrom(), freeEdges[i]->getTo())) {
+					ftouched.insert(freeEdges[i]);
+				}
+			}
+			if (touched.size() == 0 && ftouched.size() == 0) {
+				return;
+			}
+			while (event->type != SDL_MOUSEBUTTONDOWN) {
+				SDL_PollEvent(event);
+			}
+			mousePos = getMousePos();
+			bool isNodeTouched = false;
+			for (GraphNode* node : touched) {
+				isNodeTouched = isNodeTouched || node->containsPoint(mousePos);
+			}
+			for (FreeEdge* edge : ftouched) {
+				isNodeTouched = isNodeTouched || edge->isTouched(mousePos);
+			}
+			if (!isNodeTouched) {
+				return;
+			}
+
+			switch (event->button.button) {
+			
+			case SDL_BUTTON_RIGHT:
+				//delete all nodes in the square
+				for (int i = 0; i < nodes.size();) {
+					if (touched.find(nodes[i]) != touched.end()) {
+						for (int j = 0; j < edges.size();) {
+							if (edges[j]->containsNode(nodes[i])) {
+								GraphEdge* toDelete = edges[j];
+								if (toDelete->getType() == Switch) {
+									switches.erase(toDelete);
+								}
+								edges.erase((edges.begin() + j));
+								delete toDelete;
+							}
+							else {
+								j++;
+							}
+						}
+						GraphNode* toDelete = nodes[i];
+						nodes.erase(nodes.begin() + i);
+						delete toDelete;
+					}
+					else {
+						i++;
+					}
+				}
+				for (int i = 0; i < freeEdges.size();) {
+					if (ftouched.find(freeEdges[i]) != ftouched.end()) {
+						FreeEdge* toDelete = freeEdges[i];
+						if (toDelete->getType() == Switch) {
+							fswitches.erase(toDelete);
+						}
+						freeEdges.erase((freeEdges.begin() + i));
+						delete toDelete;
+					}
+					else {
+						i++;
+					}
+				}
+				break;
+			case SDL_BUTTON_LEFT:
+			case SDL_BUTTON_MIDDLE:
+				button = event->button.button;
+				std::vector<GraphNode*> copies;
+				std::vector<GraphEdge*> eCopies;
+				std::vector<FreeEdge*> fCopies;
+				std::vector<GraphNode*> touchedVec(touched.begin(), touched.end());
+				for (int i = 0; i < touchedVec.size(); i++) {
+					copies.push_back(touchedVec[i]->copy());
+				}
+				for (int i = 0; i < touchedVec.size(); i++) {
+					for (int j = 0; j < edges.size(); j++) {
+						if (edges[j]->isFrom(touchedVec[i])) {
+							for (int k = 0; k < copies.size(); k++) {
+								if (edges[j]->isTo(touchedVec[k])) {
+									eCopies.push_back(new GraphEdge(copies[i], copies[k], edges[j]->getColor(), edges[j]->getType()));
+									if (edges[j]->getType() == Switch) {
+										switches.insert(eCopies[eCopies.size() - 1]);
+										if (edges[j]->isSwitchedOn()) {
+											eCopies[eCopies.size() - 1]->toggleSwitch();
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				for (FreeEdge* edge : ftouched) {
+					fCopies.push_back(edge->copy());
+					if (edge->getType() == Switch) {
+						fswitches.insert(fCopies[fCopies.size() - 1]);
+					}
+				}
+				for (GraphNode* node : copies) nodes.push_back(node);
+				for (GraphEdge* edge : eCopies) edges.push_back(edge);
+				for (FreeEdge* edge : fCopies) freeEdges.push_back(edge);
+				while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)) {
+					if (SDL_PollEvent(event)) {
+						mousePos2 = getMousePos();
+						for (GraphNode* node : copies) {
+							node->setPos(node->getPos() + mousePos2 - mousePos);
+						}
+						for (GraphEdge* edge : eCopies) {
+							edge->update();
+						}
+						for (FreeEdge* edge : fCopies) {
+							edge->translateBy(mousePos2 - mousePos);
+						}
+						renderU(false);
+						mousePos = getMousePos();
+					}
+				}
+				break;
+			}
+		}
 	}
 }
 
@@ -326,6 +720,7 @@ void parseKey(SDL_Event* event) {
 	switch (event->key.keysym.sym) {
 	case SDLK_ESCAPE:
 		running = false;
+		//saveFile();
 		break;
 	case SDLK_1:
 		currentColor = WHITE;
@@ -379,6 +774,16 @@ void parseKey(SDL_Event* event) {
 			icons[1]->toggleSelected();
 		}
 		break;
+	case SDLK_m:
+		icons[selectedInd]->toggleSelected();
+		selectedInd = 2;
+		icons[2]->toggleSelected();
+		break;
+	case SDLK_d:
+		icons[selectedInd]->toggleSelected();
+		selectedInd = 3;
+		icons[3]->toggleSelected();
+		break;
 	case SDLK_s:
 		saveAsFile();
 		break;
@@ -394,7 +799,48 @@ Vec2 getMousePos() {
 	return position;
 }
 
+bool lineIntersectsRect(SDL_Rect rect, Vec2 p1, Vec2 p2) {
+	if (rect.w < 0) {
+		rect.x += rect.w;
+		rect.w *= -1;
+	}
+	if (rect.h < 0) {
+		rect.y += rect.h;
+		rect.h *= -1;
+	}
+	Vec2 topLeft(rect.x, rect.y);
+	Vec2 width(rect.w, 0);
+	Vec2 height(0, rect.h);
+
+	return (rectIsTouched(rect, p1) && rectIsTouched(rect, p2))
+		|| (lineIntersectsLine(p1, p2, topLeft, topLeft + width))
+		|| (lineIntersectsLine(p1, p2, topLeft, topLeft + height))
+		|| (lineIntersectsLine(p1, p2, topLeft + height, topLeft + height + width))
+		|| (lineIntersectsLine(p1, p2, topLeft + width, topLeft + height + width));
+}
+
+
+bool lineIntersectsLine(Vec2 v1, Vec2 v2, Vec2 v3, Vec2 v4) {
+	double den = ((v4.y - v3.y) * (v2.x - v1.x) - (v4.x - v3.x) * (v2.y - v1.y));
+	if (den == 0) return true;
+	
+	double uA = ((v4.x - v3.x) * (v1.y - v3.y) - (v4.y - v3.y) * (v1.x - v3.x)) / den;
+	
+	double uB = ((v2.x - v1.x) * (v1.y - v3.y) - (v2.y - v1.y) * (v1.x - v3.x)) / den;
+
+	return uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1;
+}
+
 bool rectIsTouched(SDL_Rect rect, int x, int y) {
+	if (rect.w < 0) {
+		rect.x += rect.w;
+		rect.w *= -1;
+	}
+	if (rect.h < 0) {
+		rect.y += rect.h;
+		rect.h *= -1;
+	}
+
 	return (x >= rect.x) && (x <= rect.x + rect.w) && (y >= rect.y) && (y <= rect.y + rect.h);
 }
 bool rectIsTouched(SDL_Rect rect, Vec2 pos) {

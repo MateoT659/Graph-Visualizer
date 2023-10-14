@@ -17,9 +17,10 @@ FreeEdge::FreeEdge(Vec2 from, Vec2 to, SDL_Color color, EdgeType type)
 	ymax = max(to.y, from.y);
 	xmin = min(to.x, from.x);
 	xmax = max(to.x, from.x);
-
 	slope = (double)(to.y - from.y) / (to.x - from.x + (to.x == from.x ? 1 : 0));
+
 	b = (int)(from.y - slope * from.x);
+	
 }
 
 FreeEdge::FreeEdge(int fx, int fy, int tx, int ty, SDL_Color color, EdgeType type)
@@ -69,6 +70,13 @@ void FreeEdge::setColor(SDL_Color color)
 EdgeType FreeEdge::getType()
 {
 	return type;
+}
+
+void FreeEdge::translateBy(Vec2 vec)
+{
+	this->from += vec;
+	this->to += vec;
+	update();
 }
 
 bool FreeEdge::connectedTo(Vec2 point)
@@ -223,4 +231,22 @@ bool FreeEdge::isTouched(int x, int y)
 
 bool FreeEdge::isTouched(Vec2 v) {
 	return isTouched(v.x, v.y);
+}
+
+void FreeEdge::update()
+{
+	ymin = min(to.y, from.y);
+	ymax = max(to.y, from.y);
+	xmin = min(to.x, from.x);
+	xmax = max(to.x, from.x);
+	b = (int)(from.y - slope * from.x);
+}
+
+FreeEdge* FreeEdge::copy()
+{
+	FreeEdge* ret =  new FreeEdge(from, to, color, type);
+	if (isSwitched) {
+		ret->toggleSwitch();
+	}
+	return ret;
 }
