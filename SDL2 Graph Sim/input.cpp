@@ -11,6 +11,9 @@ void updateHoverStatus(Vec2 mousePos, std::vector<Icon*> iconVec);
 void parseMenuClick(Vec2 mousePos, SDL_Event * event); 
 void adjustGhostSize(SDL_Event* event);
 bool checkSwitchEdges(Vec2 mousePos);
+void createText(SDL_Event*, Vec2 mousePos);
+void deleteText(SDL_Event* event, Vec2 mousePos, Uint8 button);
+void moveText(SDL_Event* event, Vec2 mousePos, Uint8 button);
 
 void parseEvent(SDL_Event* event) {
 	Vec2 mousePos = getMousePos();
@@ -54,17 +57,33 @@ void parseEvent(SDL_Event* event) {
 				case 4:
 					copyObject(event, SDL_BUTTON_LEFT, mousePos);
 					break;
+				case 5:
+					createText(event, mousePos);
+					break;
 				}
 			}
 			break;
 
 		case SDL_BUTTON_RIGHT:
-			deleteObject(mousePos, event, SDL_BUTTON_RIGHT);
+			switch (selectedInd) {
+			case 5:
+				deleteText(event, mousePos, SDL_BUTTON_RIGHT);
+				break;
+			default:
+				deleteObject(mousePos, event, SDL_BUTTON_RIGHT);
+				break;
+			}
 			break;
-
 		case SDL_BUTTON_MIDDLE:
-			if(!checkSwitchEdges(mousePos))
-				dragNode(event, SDL_BUTTON_MIDDLE, mousePos);
+			switch (selectedInd) {
+			case 5:
+				moveText(event, mousePos, SDL_BUTTON_MIDDLE);
+				break;
+			default:
+				if (!checkSwitchEdges(mousePos))
+					dragNode(event, SDL_BUTTON_MIDDLE, mousePos);
+				break;
+			}
 			break;
 		}
 		break;
@@ -77,6 +96,105 @@ void parseEvent(SDL_Event* event) {
 	case SDL_MOUSEWHEEL:
 		if (selectedInd <= 1) {
 			adjustGhostSize(event);
+		}
+	}
+}
+
+void createText(SDL_Event* event, Vec2 mousePos) {
+	//NEXT figure out text input, use mouse wheel to change size. clicking colorbox changes color using picker. end on ENTER or click off of box. 	
+	Textbox* editing = nullptr;
+	std::string text;
+	bool quit = false;
+	bool inArray = false;
+	for (int i = 0; i < textboxes.size() && editing == nullptr; i++) {
+		if (textboxes[i]->containsPoint(mousePos)) {
+			editing = textboxes[i];
+			text = editing->getText();
+			inArray = true;
+		}
+	}
+
+	if (editing == nullptr) {
+		editing = new Textbox(" ", mousePos, 30, currentColor);
+	}
+	
+	editing->setEditState(true);
+
+	if(!inArray) textboxes.push_back(editing);
+
+	SDL_StartTextInput();
+
+	while (!quit) {
+		while (SDL_PollEvent(event)) {
+			switch (event->type) {
+			case SDL_KEYDOWN:
+				if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_ESCAPE) {
+					quit = true;
+				}
+				else if (event->key.keysym.sym == SDLK_BACKSPACE && text.length() > 0){
+					text.pop_back();
+					editing->setText(text);
+				}
+				break;
+			case SDL_TEXTINPUT:
+				text += event->text.text;
+				editing->setText(text);
+				break;
+			case SDL_MOUSEBUTTONDOWN:
+				Vec2 mousePos = getMousePos();
+				if (event->button.button == SDL_BUTTON_LEFT && (editing->containsPoint(mousePos) || rectIsTouched(colorBox, mousePos))) {
+					openColorPicker();
+					editing->setColor(currentColor);
+				}
+				else {
+					quit = true;
+				}
+				break;
+			}
+			if (text == " ") text = "";
+			renderU(false);
+		}
+	}
+
+	SDL_StopTextInput();
+	
+	editing->setEditState(false);
+}
+
+void deleteText(SDL_Event* event, Vec2 mousePos, Uint8 button) {
+	while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)) {
+		if (SDL_PollEvent(event)) {
+			mousePos = getMousePos();
+			
+			for (int i = 0; i < textboxes.size();) {
+				if (textboxes[i]->containsPoint(mousePos)) {
+					delete textboxes[i];
+					textboxes.erase(textboxes.begin() + i);
+				}
+				else {
+					i++;
+				}
+			}
+			renderU(false);
+		}
+	}
+}
+
+void moveText(SDL_Event* event, Vec2 mousePos, Uint8 button) {
+	Textbox* toMove = nullptr;
+	for (int i = 0; i < textboxes.size() && toMove == nullptr; i++) {
+		if (textboxes[i]->containsPoint(mousePos)) {
+			toMove = textboxes[i];
+		}
+	}
+	if (toMove == nullptr) return;
+	Vec2 mousePos2;
+	while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)) {
+		if (SDL_PollEvent(event)) {
+			mousePos2 = getMousePos();
+			toMove->translateBy(mousePos2 - mousePos);
+			mousePos = getMousePos();
+			renderU(false);
 		}
 	}
 }
@@ -519,7 +637,6 @@ void dragNode(SDL_Event* event, Uint8 button, Vec2 mousePos) {
 	}
 	ghost->setPos(getMousePos());
 }
-
 void copyObject(SDL_Event* event, Uint8 button, Vec2 mousePos)
 {
 	GraphNode *nToCopy = nullptr;
@@ -774,6 +891,15 @@ void parseKey(SDL_Event* event) {
 			icons[1]->toggleSelected();
 		}
 		break;
+	case SDLK_t:
+		icons[selectedInd]->toggleSelected();
+		selectedInd = 5;
+		icons[5]->toggleSelected();
+		break;
+	case SDLK_c:
+		icons[selectedInd]->toggleSelected();
+		selectedInd = 4;
+		icons[4]->toggleSelected();
 	case SDLK_m:
 		icons[selectedInd]->toggleSelected();
 		selectedInd = 2;

@@ -29,6 +29,28 @@ void drawLine(Vec2 point1, Vec2 point2) {
 	SDL_RenderDrawLine(renderer, point1.x, point1.y, point2.x, point2.y);
 }
 
+void drawOpenRectangle(int x, int y, int w, int h, SDL_Color color) {
+	drawOpenRectangle({ x, y, w, h }, color);
+}
+void drawOpenRectangle(int x, int y, int w, int h) {
+	drawOpenRectangle({ x, y, w, h });
+}
+void drawOpenRectangle(SDL_Rect rect, SDL_Color color) {
+	setRenderColor(color);
+	drawOpenRectangle(rect);
+}
+void drawOpenRectangle(SDL_Rect rect) {
+	if (rect.w < 0) {
+		rect.x += rect.w;
+		rect.w *= -1;
+	}
+	if (rect.h < 0) {
+		rect.y += rect.h;
+		rect.h *= -1;
+	}
+	SDL_RenderDrawRect(renderer, &rect);
+}
+
 void drawFilledRectangle(SDL_Rect rect, SDL_Color color) {
 	setRenderColor(color);
 	drawFilledRectangle(rect);
@@ -126,30 +148,9 @@ SDL_Texture* loadTexture(std::string filepath) {
 }
 
 void render(bool showGhost) {
-	clearScreen(BLACK);
+	renderObjects(showGhost);
 
-	for (int i = 0; i < edges.size(); i++) {
-		edges[i]->render();
-	}
-
-	for (int i = 0; i < freeEdges.size(); i++) {
-		freeEdges[i]->render();
-	}
-
-	for (int i = 0; i < nodes.size(); i++) {
-		nodes[i]->render();
-	}
-
-	if (showGhost)
-		ghost->render();
-
-	sidebar->render();
-
-	for (int i = 0; i < icons.size(); i++) {
-		icons[i]->render();
-	}
-
-	drawFilledRectangle(colorBox, currentColor);
+	renderInterface();
 }
 
 void renderObjects(bool showGhost) {
@@ -165,6 +166,10 @@ void renderObjects(bool showGhost) {
 
 	for (int i = 0; i < nodes.size(); i++) {
 		nodes[i]->render();
+	}
+
+	for (int i = 0; i < textboxes.size(); i++) {
+		textboxes[i]->render();
 	}
 
 	if (showGhost)
@@ -184,4 +189,8 @@ void renderInterface() {
 void renderU(bool showGhost) {
 	render(showGhost);
 	SDL_RenderPresent(renderer);
+}
+
+bool colorEquals(SDL_Color c1, SDL_Color c2) {
+	return c1.r == c2.r && c1.g == c2.g && c1.b == c2.b && c1.a == c2.a;
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL.h>
+#include <SDL_ttf.h>
 #include <SDL_image.h>
 #include <iostream>
 #include <stdio.h>
@@ -16,7 +17,7 @@ class GraphEdge;
 class FreeEdge;
 class Image;
 class Icon;
-
+class Textbox;
 
 typedef enum NodeType {
 	Filled, Skeleton, Cross, FilledSq, OpenSq, CrossSq
@@ -51,11 +52,13 @@ extern EdgeType edgeType;
 extern SDL_Window* window;
 extern SDL_Surface* windowSurface;
 extern SDL_Renderer* renderer;
+extern TTF_Font* font;
 
 extern GraphNode* ghost;
 extern std::vector<GraphNode*> nodes;
 extern std::vector<GraphEdge*> edges;
 extern std::unordered_set<GraphEdge*> switches;
+extern std::vector<Textbox*> textboxes;
 extern std::vector<FreeEdge*> freeEdges;
 extern std::unordered_set<FreeEdge*> fswitches;
 
@@ -104,12 +107,17 @@ void drawFilledRectangle(int x, int y, int w, int h, SDL_Color color);
 void drawFilledRectangle(SDL_Rect rect, SDL_Color color);
 void drawFilledRectangle(int x, int y, int w, int h);
 void drawFilledRectangle(SDL_Rect rect);
+void drawOpenRectangle(int x, int y, int w, int h, SDL_Color color);
+void drawOpenRectangle(SDL_Rect rect, SDL_Color color);
+void drawOpenRectangle(int x, int y, int w, int h);
+void drawOpenRectangle(SDL_Rect rect);
 void render(bool showGhost);
 void renderObjects(bool showGhost);
 void renderInterface();
 void renderU(bool showGhost);
 void updateIcons();
 SDL_Texture* loadTexture(std::string filepath);
+bool colorEquals(SDL_Color color1, SDL_Color color2);
 
 //file_dialog.cpp
 void openColorPicker();

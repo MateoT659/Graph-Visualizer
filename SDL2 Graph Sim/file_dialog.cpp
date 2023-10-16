@@ -183,6 +183,7 @@ void openFile() {
 	std::vector<GraphNode*> fileNodes;
 	std::vector<GraphEdge*> fileEdges;
 	std::vector<FreeEdge*> fileFreeEdges;
+	std::vector<Textbox*> fileTextboxes;
 	std::unordered_set<GraphEdge*> fileSwitches;
 	std::unordered_set<FreeEdge*> fileFSwitches;
 	inStream.open(filename);
@@ -323,6 +324,29 @@ void openFile() {
 		wordVec.clear();
 	}
 	
+	int height;
+	std::string text;
+	while (!error && getline(inStream, text) && getline(inStream, line) && line.size() != 0) {
+		std::stringstream strStream(line);
+
+		while (strStream >> word) wordVec.push_back(word);
+
+		if (wordVec.size() < 4) return;
+
+		try {
+			x = stoi(wordVec[0]);
+			y = stoi(wordVec[1]);
+			height = stoi(wordVec[3]);
+		}
+		catch (...) {
+			return;
+		}
+
+		fileTextboxes.push_back(new Textbox(text, x, y, height, hexToColor(wordVec[2])));
+
+		wordVec.clear();
+	}
+	
 	inStream.close();
 	if (error) return;
 
@@ -342,6 +366,10 @@ void openFile() {
 		delete edge;
 	}
 	freeEdges.clear();
+	for (Textbox* text : textboxes) {
+		delete text;
+	}
+	textboxes.clear();
 
 	nodes = fileNodes;
 	edges = fileEdges;
@@ -350,6 +378,7 @@ void openFile() {
 	switches = fileSwitches;
 	fswitches.clear();
 	fswitches = fileFSwitches;
+	textboxes = fileTextboxes;
 
 	currentFilepath = filename;
 
@@ -407,6 +436,15 @@ void saveTo(std::string filename) {
 			outStream << " " << freeEdges[i]->isSwitchedOn() ? "1" : "0";
 		}
 		outStream << "\n";
+	}
+
+	outStream << "\n";
+
+	for (int i = 0; i < textboxes.size(); i++) {
+		outStream << "" << textboxes[i]->getText() << "\n"
+			<< textboxes[i]->getPos().x << " " << textboxes[i]->getPos().y << " "
+			<< toHex(textboxes[i]->getColor()) << " "
+			<< textboxes[i]->getHeight() << "\n";
 	}
 	currentFilepath = filename;
 
