@@ -14,6 +14,9 @@ bool checkSwitchEdges(Vec2 mousePos);
 void createText(SDL_Event*, Vec2 mousePos);
 void deleteText(SDL_Event* event, Vec2 mousePos, Uint8 button);
 void moveText(SDL_Event* event, Vec2 mousePos, Uint8 button);
+void getColorEyedropper(Vec2 mousePos);
+void setColorFill(Vec2 mousePos);
+
 
 void parseEvent(SDL_Event* event) {
 	Vec2 mousePos = getMousePos();
@@ -58,7 +61,28 @@ void parseEvent(SDL_Event* event) {
 					copyObject(event, SDL_BUTTON_LEFT, mousePos);
 					break;
 				case 5:
-					createText(event, mousePos);
+					switch (selectedTextTool) {
+					case 0:
+						createText(event, mousePos);
+						break;
+					case 1:
+						//node char (create node text)
+						break;
+					case 2:
+						deleteText(event, mousePos, SDL_BUTTON_LEFT);
+						break;
+					case 3:
+						moveText(event, mousePos, SDL_BUTTON_LEFT);
+						break;
+					}
+					break;
+				case 6:
+					//FILL TOOL
+					setColorFill(mousePos);
+					break;
+				case 7:
+					//EYEDROPPER TOOL
+					getColorEyedropper(mousePos);
 					break;
 				}
 			}
@@ -105,27 +129,31 @@ void createText(SDL_Event* event, Vec2 mousePos) {
 	Textbox* editing = nullptr;
 	std::string text;
 	bool quit = false;
-	bool inArray = false;
+	int ind = -1;
 	for (int i = 0; i < textboxes.size() && editing == nullptr; i++) {
 		if (textboxes[i]->containsPoint(mousePos)) {
 			editing = textboxes[i];
 			text = editing->getText();
-			inArray = true;
+			ind = i;
 		}
 	}
 
 	if (editing == nullptr) {
 		editing = new Textbox(" ", mousePos, 30, currentColor);
 	}
+
+	if (ind == -1) {
+		textboxes.push_back(editing);
+		ind = (int)textboxes.size() - 1;
+	}
 	
 	editing->setEditState(true);
-
-	if(!inArray) textboxes.push_back(editing);
 
 	SDL_StartTextInput();
 
 	while (!quit) {
 		while (SDL_PollEvent(event)) {
+			Vec2 mousePos = getMousePos();
 			switch (event->type) {
 			case SDL_KEYDOWN:
 				if (event->key.keysym.sym == SDLK_RETURN || event->key.keysym.sym == SDLK_ESCAPE) {
@@ -141,7 +169,6 @@ void createText(SDL_Event* event, Vec2 mousePos) {
 				editing->setText(text);
 				break;
 			case SDL_MOUSEBUTTONDOWN:
-				Vec2 mousePos = getMousePos();
 				if (event->button.button == SDL_BUTTON_LEFT && (editing->containsPoint(mousePos) || rectIsTouched(colorBox, mousePos))) {
 					openColorPicker();
 					editing->setColor(currentColor);
@@ -150,6 +177,13 @@ void createText(SDL_Event* event, Vec2 mousePos) {
 					quit = true;
 				}
 				break;
+			case SDL_MOUSEWHEEL:
+				if (event->wheel.y > 0) {
+					editing->setHeight(editing->getHeight()+2);
+				}
+				else if (event->wheel.y < 0) {
+					editing->setHeight(editing->getHeight() - 2);
+				}
 			}
 			if (text == " ") text = "";
 			renderU(false);
@@ -159,6 +193,10 @@ void createText(SDL_Event* event, Vec2 mousePos) {
 	SDL_StopTextInput();
 	
 	editing->setEditState(false);
+	if (text == "") {
+		delete editing;
+		textboxes.erase(textboxes.begin() + ind);
+	}
 }
 
 void deleteText(SDL_Event* event, Vec2 mousePos, Uint8 button) {
@@ -196,6 +234,84 @@ void moveText(SDL_Event* event, Vec2 mousePos, Uint8 button) {
 			mousePos = getMousePos();
 			renderU(false);
 		}
+	}
+}
+
+void getColorEyedropper(Vec2 mousePos)
+{
+	SDL_Color color = currentColor;
+	bool colorFound = false;
+	for (int i = 0; !colorFound && i < nodes.size(); i++) {
+		if (nodes[i]->containsPoint(mousePos)){
+			color = nodes[i]->getColor();
+			colorFound = true;
+		}
+	}
+	
+	for (int i = 0; !colorFound && i < edges.size(); i++) {
+		if (edges[i]->isTouched(mousePos)){
+			color = edges[i]->getColor();
+			colorFound = true;
+		}
+	}
+
+	for (int i = 0; !colorFound && i < freeEdges.size(); i++) {
+		if (freeEdges[i]->isTouched(mousePos)){
+			color = freeEdges[i]->getColor();
+			colorFound = true;
+		}
+	}
+
+	for (int i = 0; !colorFound && i < textboxes.size(); i++) {
+		if (textboxes[i]->containsPoint(mousePos)){
+			color = textboxes[i]->getColor();
+			colorFound = true;
+		}
+	}
+
+	if (!colorFound) {
+		//CHANGE TO BACKGROUND COLOR
+		color = bgColor;
+	}
+
+	currentColor = color;
+	adjustCustomColors();
+}
+
+void setColorFill(Vec2 mousePos)
+{
+	bool colorFound = false;
+	for (int i = 0; !colorFound && i < nodes.size(); i++) {
+		if (nodes[i]->containsPoint(mousePos)) {
+			nodes[i]->setColor(currentColor);
+			colorFound = true;
+		}
+	}
+
+	for (int i = 0; !colorFound && i < edges.size(); i++) {
+		if (edges[i]->isTouched(mousePos)) {
+			edges[i]->setColor(currentColor);
+			colorFound = true;
+		}
+	}
+
+	for (int i = 0; !colorFound && i < freeEdges.size(); i++) {
+		if (freeEdges[i]->isTouched(mousePos)) {
+			freeEdges[i]->setColor(currentColor);
+			colorFound = true;
+		}
+	}
+
+	for (int i = 0; !colorFound && i < textboxes.size(); i++) {
+		if (textboxes[i]->containsPoint(mousePos)) {
+			textboxes[i]->setColor(currentColor);
+			colorFound = true;
+		}
+	}
+
+	if (!colorFound) {
+		//CHANGE TO BACKGROUND COLOR
+		bgColor = currentColor;
 	}
 }
 
@@ -291,6 +407,45 @@ void openEdgeMenu(SDL_Event* event) {
 	for (i = 0; i < edgeIcons.size() && !edgeIcons[i]->containsPoint(mousePos); i++);
 	if (i < edgeIcons.size()) {
 		edgeType = (EdgeType)i;
+		updateIcons();
+	}
+
+}
+
+void openTextMenu(SDL_Event* event) {
+	SDL_Rect menuBG = { 0, 63*5, (int)(63 * (int)textIcons.size()), 63 };
+	SDL_Color color = { 64, 64, 64, 255 };
+	Vec2 mousePos(0, 0);
+
+	render(false);
+	drawFilledRectangle(menuBG, color);
+	for (int i = 0; i < textIcons.size(); i++) {
+		textIcons[i]->render();
+	}
+	SDL_RenderPresent(renderer);
+
+	while (!SDL_PollEvent(event));
+
+	while (!(event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)) {
+		if (SDL_PollEvent(event)) {
+			mousePos = getMousePos();
+			if (rectIsTouched(menuBG, mousePos)) {
+				updateHoverStatus(mousePos, textIcons);
+			}
+
+			render(false);
+			drawFilledRectangle(menuBG, color);
+			for (int i = 0; i < textIcons.size(); i++) {
+				textIcons[i]->render();
+			}
+			SDL_RenderPresent(renderer);
+		}
+	}
+	mousePos = getMousePos();
+	int i;
+	for (i = 0; i < textIcons.size() && !textIcons[i]->containsPoint(mousePos); i++);
+	if (i < edgeIcons.size()) {
+		selectedTextTool = i;
 		updateIcons();
 	}
 
@@ -1008,6 +1163,9 @@ void parseMenuClick(Vec2 mousePos, SDL_Event *event)
 		break;
 	case 1:
 		openEdgeMenu(event);
+		break;
+	case 5:
+		openTextMenu(event);
 		break;
 	default:
 		if (clickedInd == icons.size() - 3)

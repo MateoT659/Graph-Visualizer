@@ -116,7 +116,7 @@ void initFiles() {
 	acrCustClr[14] = colorToInt({ 116,71,0, 255 });
 	acrCustClr[15] = colorToInt({ 151, 151,151, 255 });
 	
-
+	rgbCurrent = colorToInt(WHITE);
 	ZeroMemory(&cc, sizeof(cc));
 	cc.lStructSize = sizeof(cc);
 	cc.hwndOwner = hwnd;
@@ -178,6 +178,7 @@ void openFile() {
 	}
 
 	SDL_Color fileColor;
+	SDL_Color filebgColor;
 	EdgeType fileEdgeType;
 	GraphNode* fileGhost;
 	std::vector<GraphNode*> fileNodes;
@@ -193,12 +194,13 @@ void openFile() {
 	std::stringstream strStream(line);
 	while (strStream >> word) wordVec.push_back(word);
 
-	if (wordVec.size() != 3) return;
+	if (wordVec.size() != 4) return;
 	//currentColor
 	fileColor = hexToColor(wordVec[0]);
+	filebgColor = hexToColor(wordVec[1]);
 	//edgeType
 	try {
-		num = stoi(wordVec[1]);
+		num = stoi(wordVec[2]);
 	}
 	catch (...) {
 		return;
@@ -207,7 +209,7 @@ void openFile() {
 	fileEdgeType = (EdgeType)num;
 	//ghost
 	try {
-		num = stoi(wordVec[2]);
+		num = stoi(wordVec[3]);
 	}
 	catch (...) {
 		return;
@@ -370,7 +372,7 @@ void openFile() {
 		delete text;
 	}
 	textboxes.clear();
-
+	bgColor = filebgColor;
 	nodes = fileNodes;
 	edges = fileEdges;
 	freeEdges = fileFreeEdges;
@@ -392,6 +394,8 @@ void saveTo(std::string filename) {
 
 	//currentColor
 	outStream << toHex(currentColor) << " ";
+
+	outStream << toHex(bgColor) << " ";
 
 	//edgeType
 	outStream << (int)edgeType << " ";

@@ -47,6 +47,7 @@ const SDL_Color ORANGE = { 255,133,15 ,255 };
 
 extern SDL_Rect colorBox;
 extern SDL_Color currentColor;
+extern SDL_Color bgColor;
 extern EdgeType edgeType;
 
 extern SDL_Window* window;
@@ -79,6 +80,8 @@ extern SDL_Texture* hoveredTexture;
 extern SDL_Texture* selectedTexture;
 extern std::vector<Icon*> nodeIcons;
 extern std::vector<Icon*> edgeIcons;
+extern std::vector<Icon*> textIcons;
+extern int selectedTextTool;
 
 //main.cpp
 void initSDL(void);

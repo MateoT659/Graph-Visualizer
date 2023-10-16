@@ -122,6 +122,7 @@ void drawCircle(int cx, int cy, int radius) {
 void updateIcons() {
 	icons[1]->setIcon(edgeIcons[(int)edgeType]->getIcon());
 	icons[0]->setIcon(nodeIcons[(int)ghost->getType()]->getIcon());
+	icons[5]->setIcon(textIcons[selectedTextTool]->getIcon());
 }
 
 SDL_Texture* loadTexture(std::string filepath) {
@@ -154,7 +155,7 @@ void render(bool showGhost) {
 }
 
 void renderObjects(bool showGhost) {
-	clearScreen(BLACK);
+	clearScreen(bgColor);
 
 	for (int i = 0; i < edges.size(); i++) {
 		edges[i]->render();

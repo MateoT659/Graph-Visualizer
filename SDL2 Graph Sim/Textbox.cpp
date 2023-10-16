@@ -150,6 +150,8 @@ void Textbox::translateBy(Vec2 pos)
 
 void Textbox::setHeight(int height)
 {
+	if (height < 15) height = 15;
+	if (height > 300) height = 300;
 	box.h = height;
 	box.w = (int)((double)height * 3. / 5. * (double)text.size());
 }
