@@ -195,10 +195,10 @@ void GraphEdge::renderNone()
 
 bool GraphEdge::isTouched(int x, int y) {
 	if (slope > 0) {
-		return  ((y > ymin && y < ymax) || (x > xmin && x < xmax)) && ((y <= slope * (x + 12) + b + 12 && y >= slope * (x - 12) + b - 12));
+		return  ((y >= ymin - 10 && y <= ymax + 10) && (x >= xmin - 10 && x <= xmax + 10)) && ((y <= slope * (x + 12) + b + 12 && y >= slope * (x - 12) + b - 12));
 	}
 	else {
-		return  ((y > ymin && y < ymax) || (x > xmin && x < xmax)) && ((y <= slope * (x - 12) + b + 12 && y >= slope * (x + 12) + b - 12));
+		return  ((y >= ymin - 10 && y <= ymax + 10) && (x >= xmin - 10 && x <= xmax + 10)) && ((y <= slope * (x - 12) + b + 12 && y >= slope * (x + 12) + b - 12));
 	}
 }
 

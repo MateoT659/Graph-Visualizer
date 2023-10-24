@@ -2,11 +2,13 @@
 
 Textbox::Textbox(std::string text, Vec2 pos, int height, SDL_Color color)
 {
+	this->pos = pos;
 	this->text = text;
-	this->box.x = pos.x;
-	this->box.y = pos.y;
 	this->box.h = height;
 	this->box.w = (int)((double)height * 3. / 5. * (double)text.size());
+	this->box.x = pos.x - box.w/2;
+	this->box.y = pos.y;
+	
 	this->color = color;
 
 	this->texture = NULL;
@@ -30,11 +32,13 @@ Textbox::Textbox(std::string text, Vec2 pos, int height, SDL_Color color)
 Textbox::Textbox(std::string text, int x, int y, int height, SDL_Color color)
 {
 	if (text == "") text = " ";
-	this->text = text;
-	this->box.x = x;
-	this->box.y = y;
+	this->pos.x = x;
+	this->pos.y = y;
+	this->text = text; 
 	this->box.h = height;
 	this->box.w = (int)((double)height * 3. / 5. * (double)text.size());
+	this->box.x = pos.x - box.w / 2;
+	this->box.y = y;
 	this->color = color;
 
 	this->texture = NULL;
@@ -67,6 +71,7 @@ void Textbox::setText(std::string text)
 	if (text == "") text = " ";
 	if (this->text != text) {
 		this->text = text;
+		this->box.x = pos.x - box.w / 2;
 		this->box.w = (int)((double)this->box.h * 3. / 5. * (double)text.size());
 		SDL_Surface* textSurface = TTF_RenderText_Solid(font, text.c_str(), this->color);
 		if (textSurface == NULL)
@@ -128,22 +133,27 @@ bool Textbox::getEditState() {
 
 void Textbox::setPos(Vec2 pos)
 {
-	box.x = pos.x;
-	box.y = pos.y;
+	this->pos = pos;
+	this->box.w = (int)((double)box.h * 3. / 5. * (double)text.size());
+	this->box.x = pos.x - box.w / 2;
+	this->box.y = pos.y;
 }
 
 void Textbox::setPos(int x, int y)
 {
-	box.x = x;
-	box.y = y;
+	this->pos.x = x;
+	this->pos.y = y;
+	this->box.w = (int)((double)box.h * 3. / 5. * (double)text.size());
+	this->box.x = pos.x - box.w / 2;
 }
 
 Vec2 Textbox::getPos() {
-	return Vec2(box.x, box.y);
+	return pos;
 }
 
 void Textbox::translateBy(Vec2 pos)
 {
+	this->pos += pos;
 	box.x += pos.x;
 	box.y += pos.y;
 }
@@ -152,8 +162,9 @@ void Textbox::setHeight(int height)
 {
 	if (height < 15) height = 15;
 	if (height > 300) height = 300;
-	box.h = height;
-	box.w = (int)((double)height * 3. / 5. * (double)text.size());
+	this->box.h = height;
+	this->box.w = (int)((double)height * 3. / 5. * (double)text.size());
+	this->box.x = pos.x - box.w / 2;
 }
 
 int Textbox::getHeight()

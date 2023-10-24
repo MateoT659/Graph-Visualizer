@@ -18,6 +18,7 @@ class FreeEdge;
 class Image;
 class Icon;
 class Textbox;
+class NodeText;
 
 typedef enum NodeType {
 	Filled, Skeleton, Cross, FilledSq, OpenSq, CrossSq
@@ -32,6 +33,8 @@ const int edgeTypeTotal = 6;
 const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 1000;
 const double sqrt2 = sqrt(2);
+const double sqrt34 = sqrt(34);
+const double sqrt61 = sqrt(61);
 
 const SDL_Color WHITE = {255, 255, 255, 255};
 const SDL_Color BLACK = {0, 0, 0, 255};
@@ -60,6 +63,7 @@ extern std::vector<GraphNode*> nodes;
 extern std::vector<GraphEdge*> edges;
 extern std::unordered_set<GraphEdge*> switches;
 extern std::vector<Textbox*> textboxes;
+extern std::vector<NodeText*> nodetexts;
 extern std::vector<FreeEdge*> freeEdges;
 extern std::unordered_set<FreeEdge*> fswitches;
 

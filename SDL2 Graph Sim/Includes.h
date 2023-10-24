@@ -6,3 +6,4 @@
 #include "Image.h"
 #include "Icon.h"
 #include "Textbox.h"
+#include "NodeText.h"

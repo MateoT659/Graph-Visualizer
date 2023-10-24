@@ -114,7 +114,7 @@ void initFiles() {
 	acrCustClr[12] = colorToInt(AMETHYST);
 	acrCustClr[13] = colorToInt({135, 175, 115, 255});
 	acrCustClr[14] = colorToInt({ 116,71,0, 255 });
-	acrCustClr[15] = colorToInt({ 151, 151,151, 255 });
+	acrCustClr[15] = colorToInt(BLACK);
 	
 	rgbCurrent = colorToInt(WHITE);
 	ZeroMemory(&cc, sizeof(cc));
@@ -185,6 +185,7 @@ void openFile() {
 	std::vector<GraphEdge*> fileEdges;
 	std::vector<FreeEdge*> fileFreeEdges;
 	std::vector<Textbox*> fileTextboxes;
+	std::vector<NodeText*> fileNodetexts;
 	std::unordered_set<GraphEdge*> fileSwitches;
 	std::unordered_set<FreeEdge*> fileFSwitches;
 	inStream.open(filename);
@@ -325,7 +326,6 @@ void openFile() {
 
 		wordVec.clear();
 	}
-	
 	int height;
 	std::string text;
 	while (!error && getline(inStream, text) && getline(inStream, line) && line.size() != 0) {
@@ -348,7 +348,32 @@ void openFile() {
 
 		wordVec.clear();
 	}
-	
+	/*for (int i = 0; i < nodetexts.size(); i++) {
+		outStream << nodetexts[i]->getText() << "\n"
+			<< indexMap[nodetexts[i]->getNode()] << "\n";
+	}*/
+	int ind;
+	while (!error && getline(inStream, text) && getline(inStream, line) && line.size() != 0) {
+		std::stringstream strStream(line);
+
+		while (strStream >> word) wordVec.push_back(word);
+		if (wordVec.size() < 1) return;
+
+		
+		try {
+			ind = stoi(wordVec[0]);
+		}
+		catch (...) {
+			return;
+		}
+
+		if (ind < 0 || ind >= fileNodes.size()) return;
+
+		fileNodetexts.push_back(new NodeText(fileNodes[ind], text));
+
+		wordVec.clear();
+	}
+
 	inStream.close();
 	if (error) return;
 
@@ -371,6 +396,10 @@ void openFile() {
 	for (Textbox* text : textboxes) {
 		delete text;
 	}
+	for (NodeText* nt : nodetexts) {
+		delete nt;
+	}
+	nodetexts.clear();
 	textboxes.clear();
 	bgColor = filebgColor;
 	nodes = fileNodes;
@@ -381,6 +410,7 @@ void openFile() {
 	fswitches.clear();
 	fswitches = fileFSwitches;
 	textboxes = fileTextboxes;
+	nodetexts = fileNodetexts;
 
 	currentFilepath = filename;
 
@@ -445,10 +475,18 @@ void saveTo(std::string filename) {
 	outStream << "\n";
 
 	for (int i = 0; i < textboxes.size(); i++) {
-		outStream << "" << textboxes[i]->getText() << "\n"
+		outStream << textboxes[i]->getText() << "\n"
 			<< textboxes[i]->getPos().x << " " << textboxes[i]->getPos().y << " "
 			<< toHex(textboxes[i]->getColor()) << " "
 			<< textboxes[i]->getHeight() << "\n";
+	}
+
+	outStream << "\n";
+	outStream << "\n";
+
+	for (int i = 0; i < nodetexts.size(); i++) {
+		outStream << nodetexts[i]->getText() << "\n"
+			<< indexMap[nodetexts[i]->getNode()] << "\n";
 	}
 	currentFilepath = filename;
 

@@ -3,6 +3,7 @@
 class Textbox
 {
 private:
+	Vec2 pos;
 	std::string text;
 	SDL_Texture* texture;
 	SDL_Rect box; //height encoded here

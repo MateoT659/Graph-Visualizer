@@ -173,6 +173,10 @@ void renderObjects(bool showGhost) {
 		textboxes[i]->render();
 	}
 
+	for (int i = 0; i < nodetexts.size(); i++) {
+		nodetexts[i]->render();
+	}
+
 	if (showGhost)
 		ghost->render();
 }
