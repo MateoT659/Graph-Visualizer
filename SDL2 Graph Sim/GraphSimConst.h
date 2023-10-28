@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <vector>
 #include <unordered_map>
+#include <queue>
+#include <stack>
 #include <unordered_set>
 #include <windows.h>
 #include <sstream>
@@ -86,6 +88,7 @@ extern std::vector<Icon*> nodeIcons;
 extern std::vector<Icon*> edgeIcons;
 extern std::vector<Icon*> textIcons;
 extern int selectedTextTool;
+extern std::string currentFilepath;
 
 //main.cpp
 void initSDL(void);

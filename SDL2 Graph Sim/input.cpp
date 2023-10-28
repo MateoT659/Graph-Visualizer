@@ -36,7 +36,6 @@ void parseEvent(SDL_Event* event) {
 		break;
 
 	case SDL_MOUSEBUTTONDOWN:
-
 		switch (event->button.button) {
 		case SDL_BUTTON_LEFT:
 
@@ -113,6 +112,7 @@ void parseEvent(SDL_Event* event) {
 					dragNode(event, SDL_BUTTON_MIDDLE, mousePos);
 			break;
 		}
+		break;
 	case SDL_KEYDOWN:
 		parseKey(event);
 		ghost->setColor(currentColor);
@@ -437,6 +437,7 @@ void newFile()
 	bgColor = BLACK;
 	currentColor = WHITE;
 	ghost->setColor(currentColor);
+	currentFilepath = "None";
 }
 
 bool checkSwitchEdges(Vec2 mousePos) {
@@ -460,7 +461,7 @@ void openNodeMenu(SDL_Event* event) {
 	
 	SDL_Rect menuBG = { 0, 0, (int)(63 * (int)nodeIcons.size()), 63 };
 	SDL_Color menuColor = { 64, 64, 64, 255 };
-	Vec2 mousePos(0, 0);
+	Vec2 mousePos = getMousePos();
 
 	render(false);
 	drawFilledRectangle(menuBG, menuColor);
@@ -500,7 +501,7 @@ void openNodeMenu(SDL_Event* event) {
 void openEdgeMenu(SDL_Event* event) {
 	SDL_Rect menuBG = { 0, 63, (int)(63 * (int)edgeIcons.size()), 63 };
 	SDL_Color color = { 64, 64, 64, 255 };
-	Vec2 mousePos(0, 0);
+	Vec2 mousePos = getMousePos();
 
 	render(false);
 	drawFilledRectangle(menuBG, color);
@@ -539,7 +540,7 @@ void openEdgeMenu(SDL_Event* event) {
 void openTextMenu(SDL_Event* event) {
 	SDL_Rect menuBG = { 0, 63*5, (int)(63 * (int)textIcons.size()), 63 };
 	SDL_Color color = { 64, 64, 64, 255 };
-	Vec2 mousePos(0, 0);
+	Vec2 mousePos = getMousePos();
 
 	render(false);
 	drawFilledRectangle(menuBG, color);
@@ -695,7 +696,7 @@ void deleteObject(Vec2 mousePos, SDL_Event* event, Uint8 button) {
 			}
 			renderU(false);
 		}
-	}
+	}ghost->setPos(mousePos);
 }
 bool dragNode(SDL_Event* event, Uint8 button, Vec2 mousePos) {
 	

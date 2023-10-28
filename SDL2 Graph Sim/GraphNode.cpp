@@ -93,7 +93,95 @@ Vec2 GraphNode::getPos()
 
 void GraphNode::renderFilled()
 {
-	for (int w = 0; w < radius * 2; w++)
+
+	//line solution (MUAH beautiful)
+
+	int x = pos.x, y = pos.y;
+	int dx = radius, dy = 0, prevdx = -1;
+
+	while (dx >= dy) {
+		drawLine(x + dx, y + dy, x - dx, y + dy);
+		if (dy != 0)
+			drawLine(x + dx, y - dy, x - dx, y - dy);
+
+		if (prevdx != dx && dy>0 && dy != dx) {
+			drawLine(x + dy, y + dx, x - dy, y + dx);
+			drawLine(x + dy, y - dx, x - dy, y - dx);
+			prevdx = dx;
+		}
+		dy++;
+		while (radius * radius < dx * dx + dy * dy) {
+			dx--;
+		}
+
+	}
+
+	//flood fill solution (surprisingly bad, but i learned how to hash so not all that bad)
+	/*
+	//make skeleton and flood fill using queue solution
+
+	std::unordered_set<Vec2> filled;
+	std::queue<Vec2> toFill;
+
+	//render outline (skeleton) and add all points to filled points.
+
+	int x = pos.x, y = pos.y;
+	int dx = radius, dy = 0;
+	while (dx >= dy) {
+		drawPoint(x + dx, y + dy);
+		filled.insert(Vec2(x + dx, y + dy));
+		drawPoint(x + dy, y + dx);
+		filled.insert(Vec2(x + dy, y + dx));
+		drawPoint(x - dx, y + dy);
+		filled.insert(Vec2(x - dx, y + dy));
+		drawPoint(x - dy, y + dx);
+		filled.insert(Vec2(x - dy, y + dx));
+		drawPoint(x + dx, y - dy);
+		filled.insert(Vec2(x + dx, y - dy));
+		drawPoint(x + dy, y - dx);
+		filled.insert(Vec2(x + dy, y - dx));
+		drawPoint(x - dx, y - dy);
+		filled.insert(Vec2(x - dx, y - dy));
+		drawPoint(x - dy, y - dx);
+		filled.insert(Vec2(x - dy, y - dx));
+
+		dy++;
+		while (radius * radius < dx * dx + dy * dy) {
+			dx--;
+		}
+	}
+
+
+	Vec2 zeroone(0, 1);
+	Vec2 onezero(1, 0);
+	Vec2 curr;
+	//then, begin flood-filling using a queue from the central point. This avoids doing any work on pixels outside the circle.
+	toFill.push(pos);
+	while (!toFill.empty()) {
+		curr = toFill.front();
+		toFill.pop();
+		drawPoint(curr);
+		if (filled.count(curr + zeroone) == 0) {
+			toFill.push(curr + zeroone);
+			filled.insert(curr + zeroone);
+		}
+		if (filled.count(curr - zeroone) == 0) {
+			toFill.push(curr - zeroone);
+			filled.insert(curr - zeroone);
+		}
+		if (filled.count(curr + onezero) == 0) {
+			toFill.push(curr + onezero);
+			filled.insert(curr + onezero);
+		}
+		if (filled.count(curr - onezero) == 0) {
+			toFill.push(curr - onezero);
+		}
+
+	}
+	*/
+
+	//original double for loop if statement solution (ok)
+	/* for (int w = 0; w < radius * 2; w++)
 	{
 		for (int h = 0; h < radius * 2; h++)
 		{
@@ -104,7 +192,7 @@ void GraphNode::renderFilled()
 				drawPoint((int)pos.x + dx, (int)pos.y + dy);
 			}
 		}
-	}
+	}*/
 }
 
 void GraphNode::renderSkeleton() {

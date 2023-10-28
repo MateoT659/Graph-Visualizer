@@ -24,21 +24,31 @@ public:
 	Vec2 getUnit();
 	Vec2 getProjectionOn(Vec2);
 
-
 	void operator+=(Vec2);
 	void operator-=(Vec2);
 	void operator*=(int);
 	void operator*=(double);
 	
 	double operator*(Vec2); //dot product operator
-	
+
 	Vec2 operator+(Vec2); //addition operator
 	Vec2 operator-(Vec2); //subtraction operator
 	Vec2 operator*(double); //float multiplication
 	Vec2 operator/(double); //float div
 	Vec2 operator*(int); //int multiplication
-	bool operator==(Vec2);
+	bool operator==(const Vec2& other)const {
+		return x == other.x && y == other.y;
+	}
 
 	std::string toString();
 };
+
+namespace std {
+	template<>
+	struct hash<Vec2> {
+		size_t operator()(const Vec2& vec) const {
+			return vec.x >= vec.y ? vec.x * vec.x + vec.x + vec.y : vec.x + vec.y * vec.y; 
+		}
+	};
+}
 

@@ -75,10 +75,6 @@ Vec2 Vec2::operator*(double c) {
 Vec2 Vec2::operator*(int c) {
 	return Vec2(x * c, y * c);
 }
-bool Vec2::operator==(Vec2 other)
-{
-	return this->x == other.x && this->y == other.y;
-}
 double Vec2::operator*(Vec2 other) {
 	return x * other.x + y * other.y;;
 }

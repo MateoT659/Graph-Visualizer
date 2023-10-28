@@ -105,17 +105,25 @@ void drawCircle(Vec2 pos, int radius) {
 }
 
 void drawCircle(int cx, int cy, int radius) {
-	for (int w = 0; w < radius * 2; w++)
-	{
-		for (int h = 0; h < radius * 2; h++)
-		{
-			int dx = radius - w; // horizontal offset
-			int dy = radius - h; // vertical offset
-			if ((dx * dx + dy * dy) <= (radius * radius))
-			{
-				drawPoint((int)cx + dx, (int)cy + dy);
-			}
+	
+	int x = cx, y = cy;
+	int dx = radius, dy = 0, prevdx = -1;
+
+	while (dx >= dy) {
+		drawLine(x + dx, y + dy, x - dx, y + dy);
+		if (dy != 0)
+			drawLine(x + dx, y - dy, x - dx, y - dy);
+
+		if (prevdx != dx && dy > 0 && dy != dx) {
+			drawLine(x + dy, y + dx, x - dy, y + dx);
+			drawLine(x + dy, y - dx, x - dy, y - dx);
+			prevdx = dx;
 		}
+		dy++;
+		while (radius * radius < dx * dx + dy * dy) {
+			dx--;
+		}
+
 	}
 }
 
