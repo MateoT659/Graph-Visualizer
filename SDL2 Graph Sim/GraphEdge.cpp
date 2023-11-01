@@ -18,45 +18,54 @@ GraphEdge::GraphEdge(GraphNode* node1, GraphNode* node2, SDL_Color color, EdgeTy
 	double fromX = node1->getX();
 	double fromY = node1->getY();
 
-	switch (node1->getType()) {
-	case FilledSq:
-	case OpenSq:
-	case CrossSq:
-		while (node1->containsPoint((int)fromX, (int)fromY)) {
-			fromX += unitX;
-			fromY += unitY;
-		}
-		break;
-	default:
-		fromX += unitX * node1->getRadius();
-		fromY += unitY * node1->getRadius();
-		break;
+	if (this->type == HorFirst || this->type == VertFirst) {
+		from = node1->getPos();
+		to = node2->getPos();
 	}
-
-	this->from.x = (int)fromX;
-	this->from.y = (int)fromY;
-
-	double toX = node2->getX();
-	double toY = node2->getY();
-
-	switch (node2->getType()) {
-	case FilledSq:
-	case OpenSq:
-	case CrossSq:
-		while (node2->containsPoint((int)toX, (int)toY)) {
-			toX -= unitX;
-			toY -= unitY;
+	else {
+		switch (node1->getType()) {
+		case GATE:
+			break;
+		case FilledSq:
+		case OpenSq:
+		case CrossSq:
+			while (node1->containsPoint((int)fromX, (int)fromY)) {
+				fromX += unitX;
+				fromY += unitY;
+			}
+			break;
+		default:
+			fromX += unitX * node1->getRadius();
+			fromY += unitY * node1->getRadius();
+			break;
 		}
-		break;
-	default:
-		toX -= unitX * node2->getRadius();
-		toY -= unitY * node2->getRadius();
-		break;
+
+		this->from.x = (int)fromX;
+		this->from.y = (int)fromY;
+
+		double toX = node2->getX();
+		double toY = node2->getY();
+
+		switch (node2->getType()) {
+		case GATE:
+			break;
+		case FilledSq:
+		case OpenSq:
+		case CrossSq:
+			while (node2->containsPoint((int)toX, (int)toY)) {
+				toX -= unitX;
+				toY -= unitY;
+			}
+			break;
+		default:
+			toX -= unitX * node2->getRadius();
+			toY -= unitY * node2->getRadius();
+			break;
+		}
+
+		this->to.x = (int)toX;
+		this->to.y = (int)toY;
 	}
-
-	this->to.x = (int)toX;
-	this->to.y = (int)toY;
-
 
 	//prevents division by zero
 
@@ -97,7 +106,26 @@ void GraphEdge::render() {
 		break;
 	case Switch:
 		renderSwitch();
+		break;
+	case HorFirst:
+		renderHorL();
+		break;
+	case VertFirst:
+		renderVertL();
+		break;
 	}
+}
+
+void GraphEdge::renderHorL()
+{
+	drawLine(from.x, from.y, to.x,from.y  );
+	drawLine(to.x, from.y, to.x, to.y);
+}
+
+void GraphEdge::renderVertL()
+{
+	drawLine(from.x, from.y, from.x, to.y);
+	drawLine(from.x, to.y, to.x, to.y);
 }
 
 void GraphEdge::renderSwitch()
@@ -194,11 +222,21 @@ void GraphEdge::renderNone()
 }
 
 bool GraphEdge::isTouched(int x, int y) {
-	if (slope > 0) {
-		return  ((y >= ymin - 10 && y <= ymax + 10) && (x >= xmin - 10 && x <= xmax + 10)) && ((y <= slope * (x + 12) + b + 12 && y >= slope * (x - 12) + b - 12));
+	//L is touched
+	
+	if (type == HorFirst) {
+		return rectIsTouched({ from.x,from.y - 12,to.x - from.x,24 }, x, y) || rectIsTouched({ to.x - 12, from.y,24, to.y - from.y }, x, y);
+	}
+	else if (type == VertFirst) {
+		return rectIsTouched({ from.x-12,from.y,24, to.y - from.y}, x, y) || rectIsTouched({ from.x, to.y-12, to.x - from.x, 24 }, x, y);
 	}
 	else {
-		return  ((y >= ymin - 10 && y <= ymax + 10) && (x >= xmin - 10 && x <= xmax + 10)) && ((y <= slope * (x - 12) + b + 12 && y >= slope * (x + 12) + b - 12));
+		if (slope > 0) {
+			return  ((y >= ymin - 10 && y <= ymax + 10) && (x >= xmin - 10 && x <= xmax + 10)) && ((y <= slope * (x + 12) + b + 12 && y >= slope * (x - 12) + b - 12));
+		}
+		else {
+			return  ((y >= ymin - 10 && y <= ymax + 10) && (x >= xmin - 10 && x <= xmax + 10)) && ((y <= slope * (x - 12) + b + 12 && y >= slope * (x + 12) + b - 12));
+		}
 	}
 }
 
@@ -227,6 +265,11 @@ EdgeType GraphEdge::getType()
 
 bool GraphEdge::containsNode(GraphNode* node) {
 	return node1 == node || node2 == node;
+}
+
+bool GraphEdge::containsGate(Gate* gate)
+{
+	return gate->containsNode(node1) || gate->containsNode(node2);
 }
 
 bool GraphEdge::isFrom(GraphNode* node)
@@ -271,46 +314,55 @@ void GraphEdge::update() {
 	xmin = min(node1->getX(), node2->getX());
 	xmax = max(node1->getX(), node2->getX());
 	
-
-	double fromX = node1->getX(), fromY = node1->getY();
-	switch (node1->getType()) {
-	case FilledSq:
-	case OpenSq:
-	case CrossSq:
-		while (node1->containsPoint((int)fromX, (int)fromY)) {
-			fromX += unitX;
-			fromY += unitY;
-		}
-		break;
-	default:
-		fromX += unitX * node1->getRadius();
-		fromY += unitY * node1->getRadius();
-		break;
+	int fromX = node1->getX(), fromY = node1->getY();
+	if (this->type == HorFirst || this->type == VertFirst) {
+		from = node1->getPos();
+		to = node2->getPos();
 	}
-
-	this->from.x = (int)fromX;
-	this->from.y = (int)fromY;
-
-	double toX = node2->getX();
-	double toY = node2->getY();
-
-	switch (node2->getType()) {
-	case FilledSq:
-	case OpenSq:
-	case CrossSq:
-		while (node2->containsPoint((int)toX, (int)toY)) {
-			toX -= unitX;
-			toY -= unitY;
+	else {
+		switch (node1->getType()) {
+		case GATE:
+			break;
+		case FilledSq:
+		case OpenSq:
+		case CrossSq:
+			while (node1->containsPoint((int)fromX, (int)fromY)) {
+				fromX += unitX;
+				fromY += unitY;
+			}
+			break;
+		default:
+			fromX += unitX * node1->getRadius();
+			fromY += unitY * node1->getRadius();
+			break;
 		}
-		break;
-	default:
-		toX -= unitX * node2->getRadius();
-		toY -= unitY * node2->getRadius();
-		break;
-	}
 
-	this->to.x = (int)toX;
-	this->to.y = (int)toY;
+		this->from.x = (int)fromX;
+		this->from.y = (int)fromY;
+
+		double toX = node2->getX();
+		double toY = node2->getY();
+
+		switch (node2->getType()) {
+		case GATE:
+			break;
+		case FilledSq:
+		case OpenSq:
+		case CrossSq:
+			while (node2->containsPoint((int)toX, (int)toY)) {
+				toX -= unitX;
+				toY -= unitY;
+			}
+			break;
+		default:
+			toX -= unitX * node2->getRadius();
+			toY -= unitY * node2->getRadius();
+			break;
+		}
+
+		this->to.x = (int)toX;
+		this->to.y = (int)toY;
+	}
 
 	slope = (double)(to.y - from.y) / (to.x - from.x + (to.x == from.x ? 1 : 0));
 	b = (int)(from.y - slope * from.x);

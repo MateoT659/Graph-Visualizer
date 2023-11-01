@@ -15,6 +15,8 @@ private:
 	void renderResist();
 	void renderDirected();
 	void renderNone();
+	void renderHorL();
+	void renderVertL();
 
 	double slope;
 	int b, ymin, ymax, xmin, xmax;

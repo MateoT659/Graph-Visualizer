@@ -1,6 +1,7 @@
 #pragma once
 #include "GraphSimConst.h"
 #include "GraphNode.h"
+#include "Gate.h"
 
 class GraphEdge
 {
@@ -11,6 +12,8 @@ private:
 	EdgeType type;
 	double unitX, unitY;
 	
+	void renderHorL();
+	void renderVertL();
 	void renderSwitch();
 	void renderDotted();
 	void renderDashed();
@@ -34,6 +37,7 @@ public:
 	
 	void update();
 	bool containsNode(GraphNode* node);
+	bool containsGate(Gate* gate);
 	bool isFrom(GraphNode* node);
 	bool isTo(GraphNode* node);
 	bool isSwitchedOn();

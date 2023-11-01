@@ -104,6 +104,26 @@ void drawCircle(Vec2 pos, int radius) {
 	drawCircle(pos.x, pos.y, radius);
 }
 
+void drawOpenCircle(Vec2 pos, int radius) {
+	int x = pos.x, y = pos.y;
+	int dx = radius, dy = 0;
+
+	while (dx >= dy) {
+		drawPoint(x + dx, y + dy);
+		drawPoint(x + dy, y + dx);
+		drawPoint(x - dx, y + dy);
+		drawPoint(x - dy, y + dx);
+		drawPoint(x + dx, y - dy);
+		drawPoint(x + dy, y - dx);
+		drawPoint(x - dx, y - dy);
+		drawPoint(x - dy, y - dx);
+		dy++;
+		while (radius * radius < dx * dx + dy * dy) {
+			dx--;
+		}
+	}
+}
+
 void drawCircle(int cx, int cy, int radius) {
 	
 	int x = cx, y = cy;
@@ -131,6 +151,8 @@ void updateIcons() {
 	icons[1]->setIcon(edgeIcons[(int)edgeType]->getIcon());
 	icons[0]->setIcon(nodeIcons[(int)ghost->getType()]->getIcon());
 	icons[5]->setIcon(textIcons[selectedTextTool]->getIcon());
+	icons[8]->setIcon(gateIcons[ghostGate->getType()]->getIcon());
+	
 }
 
 SDL_Texture* loadTexture(std::string filepath) {
@@ -185,8 +207,15 @@ void renderObjects(bool showGhost) {
 		nodetexts[i]->render();
 	}
 
+	for (int i = 0; i < gates.size(); i++) {
+		gates[i]->render();
+	}
+
 	if (showGhost)
 		ghost->render();
+
+	if (selectedInd == 8 && showGhost)
+		ghostGate->renderGhost();
 }
 
 void renderInterface() {

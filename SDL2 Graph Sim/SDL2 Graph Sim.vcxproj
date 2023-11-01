@@ -22,6 +22,7 @@
     <ClCompile Include="..\..\..\..\..\..\Downloads\01_hello_SDL\main.cpp" />
     <ClCompile Include="file_dialog.cpp" />
     <ClCompile Include="FreeEdge.cpp" />
+    <ClCompile Include="Gate.cpp" />
     <ClCompile Include="GraphEdge.cpp" />
     <ClCompile Include="graphics.cpp" />
     <ClCompile Include="GraphNode.cpp" />
@@ -34,6 +35,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FreeEdge.h" />
+    <ClInclude Include="Gate.h" />
     <ClInclude Include="GraphEdge.h" />
     <ClInclude Include="GraphNode.h" />
     <ClInclude Include="GraphSimConst.h" />

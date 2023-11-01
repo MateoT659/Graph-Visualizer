@@ -7,3 +7,4 @@
 #include "Icon.h"
 #include "Textbox.h"
 #include "NodeText.h"
+#include "Gate.h"

@@ -40,6 +40,11 @@ void GraphNode::setPos(Vec2 pos)
 	this->pos = pos;
 }
 
+void GraphNode::translateBy(Vec2 vec)
+{
+	pos += vec;
+}
+
 SDL_Color GraphNode::getColor()
 {
 	return color;
@@ -74,7 +79,7 @@ bool GraphNode::containsPoint(Vec2 point)
 	case FilledSq:
 	case OpenSq:
 	case CrossSq:
-		return rectIsTouched({ pos.x - radius, pos.y - radius, 2 * radius,2 * radius }, point);
+		return rectIsTouched({ pos.x - radius, pos.y - radius, 2 * radius,2 * radius}, point);
 	}
 	return (pos - point).mag2() <= radius * radius;
 }

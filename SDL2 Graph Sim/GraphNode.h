@@ -28,6 +28,8 @@ public:
 	void setPos(int x, int y);
 	void setPos(Vec2 position);
 
+	void translateBy(Vec2 vec);
+
 	Vec2 getPos();
 	int getX();
 	int* getXaddr();

@@ -21,16 +21,30 @@ class Image;
 class Icon;
 class Textbox;
 class NodeText;
+class Gate;
+class UnaryGate;
+class BinaryGate;
 
 typedef enum NodeType {
-	Filled, Skeleton, Cross, FilledSq, OpenSq, CrossSq
+	Filled, Skeleton, Cross, FilledSq, OpenSq, CrossSq, GATE
 } NodeType;
 const int nodeTypeTotal = 6;
 
 typedef enum EdgeType {
-	None, Directed, Resistance, Dashed, Dotted, Switch
+	None, Directed, Resistance, Dashed, Dotted, Switch, VertFirst, HorFirst 
 } EdgeType;
-const int edgeTypeTotal = 6;
+const int edgeTypeTotal = 8;
+
+typedef enum uGateType {
+	IDENTITY, NOT
+} uGateType;
+const int uGateTypeTotal = 2;
+
+typedef enum bGateType {
+	AND = 2, NAND = 3, OR = 4, NOR = 5, XOR = 6, XNOR = 7
+} bGateType;
+const int bGateTypeTotal = 6;
+
 
 const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 1000;
@@ -61,6 +75,7 @@ extern SDL_Renderer* renderer;
 extern TTF_Font* font;
 
 extern GraphNode* ghost;
+extern Gate* ghostGate;
 extern std::vector<GraphNode*> nodes;
 extern std::vector<GraphEdge*> edges;
 extern std::unordered_set<GraphEdge*> switches;
@@ -68,6 +83,7 @@ extern std::vector<Textbox*> textboxes;
 extern std::vector<NodeText*> nodetexts;
 extern std::vector<FreeEdge*> freeEdges;
 extern std::unordered_set<FreeEdge*> fswitches;
+extern std::vector<Gate*> gates;
 
 extern bool running;
 
@@ -89,6 +105,7 @@ extern std::vector<Icon*> edgeIcons;
 extern std::vector<Icon*> textIcons;
 extern int selectedTextTool;
 extern std::string currentFilepath;
+extern std::vector<Icon*>gateIcons;
 
 //main.cpp
 void initSDL(void);
@@ -105,6 +122,7 @@ bool lineIntersectsRect(SDL_Rect rect, Vec2 p1, Vec2 p2);
 //graphics.cpp
 void drawCircle(Vec2 pos, int radius);
 void drawCircle(int cx, int cy, int radius);
+void drawOpenCircle(Vec2 pos, int radius);
 void setRenderColor(SDL_Color color);
 void setRenderColor(SDL_Color rgbColor, int alpha);
 void setRenderColor(int r, int g, int b, int alpha);

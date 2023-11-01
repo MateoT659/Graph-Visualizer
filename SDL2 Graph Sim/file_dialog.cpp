@@ -132,6 +132,7 @@ void openColorPicker() {
 		currentColor.g = (cc.rgbResult / 256) % 256;
 		currentColor.b = (cc.rgbResult / (256 * 256)) % 256;
 		ghost->setColor(currentColor);
+		ghostGate->setColor(currentColor);
 		adjustCustomColors();
 	}
 }

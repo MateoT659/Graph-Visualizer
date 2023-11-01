@@ -127,7 +127,24 @@ void FreeEdge::render(void)
 		break;
 	case Switch:
 		renderSwitch();
+	case HorFirst:
+		renderHorL();
+		break;
+	case VertFirst:
+		renderVertL();
+		break;
 	}
+}
+void FreeEdge::renderHorL()
+{
+	drawLine(from.x, from.y, to.x, from.y);
+	drawLine(to.x, from.y, to.x, to.y);
+}
+
+void FreeEdge::renderVertL()
+{
+	drawLine(from.x, from.y, from.x, to.y);
+	drawLine(from.x, to.y, to.x, to.y);
 }
 
 
@@ -221,11 +238,19 @@ void FreeEdge::renderNone()
 
 bool FreeEdge::isTouched(int x, int y)
 {
-	if (slope > 0) {
-		return  ((y >= ymin-10 && y <= ymax+10) && (x >= xmin-10 && x <= xmax+10)) && ((y <= slope * (x + 12) + b + 12 && y >= slope * (x - 12) + b - 12));
+	if (type == HorFirst) {
+		return rectIsTouched({ from.x,from.y - 12,to.x - from.x,24 }, x, y) || rectIsTouched({ to.x - 12, from.y,24, to.y - from.y }, x, y);
+	}
+	else if (type == VertFirst) {
+		return rectIsTouched({ from.x - 12,from.y,24, to.y - from.y }, x, y) || rectIsTouched({ from.x, to.y - 12, to.x - from.x, 24 }, x, y);
 	}
 	else {
-		return  ((y >= ymin-10 && y <= ymax+10) && (x >= xmin-10 && x <= xmax+10)) && ((y <= slope * (x - 12) + b + 12 && y >= slope * (x + 12) + b - 12));
+		if (slope > 0) {
+			return  ((y >= ymin - 10 && y <= ymax + 10) && (x >= xmin - 10 && x <= xmax + 10)) && ((y <= slope * (x + 12) + b + 12 && y >= slope * (x - 12) + b - 12));
+		}
+		else {
+			return  ((y >= ymin - 10 && y <= ymax + 10) && (x >= xmin - 10 && x <= xmax + 10)) && ((y <= slope * (x - 12) + b + 12 && y >= slope * (x + 12) + b - 12));
+		}
 	}
 }
 
