@@ -15,6 +15,17 @@ UnaryGate::~UnaryGate()
 	delete out;
 }
 
+Vec2 UnaryGate::getPos()
+{
+	return pos;
+}
+
+int UnaryGate::getNodeInd(GraphNode* g)
+{
+	if (in == g) return 0;
+	if (out == g) return 1;
+	return -1;
+}
 bool UnaryGate::isTouched(Vec2 vec)
 {
 	return rectIsTouched({ pos.x - 15, pos.y - 20, 40, 40 }, vec);
@@ -139,6 +150,11 @@ bool UnaryGate::containsNode(GraphNode* node)
 	return in == node || out == node;
 }
 
+int UnaryGate::getNodeNum()
+{
+	return 2;
+}
+
 BinaryGate::BinaryGate(Vec2 pos, SDL_Color color, bGateType type)
 {
 	this->pos = pos;
@@ -153,6 +169,19 @@ BinaryGate::~BinaryGate()
 	delete in1;
 	delete in2;
 	delete out;
+}
+
+Vec2 BinaryGate::getPos()
+{
+	return pos;
+}
+
+int BinaryGate::getNodeInd(GraphNode* g)
+{
+	if (in1 == g) return 0;
+	if (in2 == g) return 1;
+	if (out == g) return 2;
+	return -1;
 }
 
 void BinaryGate::setPos(Vec2 vec)
@@ -499,4 +528,9 @@ Gate* BinaryGate::copy()
 bool BinaryGate::containsNode(GraphNode* node)
 {
 	return in1 == node || in2 == node || out == node;
+}
+
+int BinaryGate::getNodeNum()
+{
+	return 3;
 }

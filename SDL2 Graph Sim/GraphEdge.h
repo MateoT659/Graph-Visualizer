@@ -40,6 +40,8 @@ public:
 	bool containsGate(Gate* gate);
 	bool isFrom(GraphNode* node);
 	bool isTo(GraphNode* node);
+	bool isTo(Gate* gate);
+	bool isFrom(Gate* gate);
 	bool isSwitchedOn();
 	bool isSwitchTouched(int x, int y);
 	bool isSwitchTouched(Vec2 pos);

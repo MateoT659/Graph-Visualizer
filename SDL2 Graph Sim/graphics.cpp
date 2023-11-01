@@ -211,7 +211,7 @@ void renderObjects(bool showGhost) {
 		gates[i]->render();
 	}
 
-	if (showGhost)
+	if (selectedInd <=1 && showGhost)
 		ghost->render();
 
 	if (selectedInd == 8 && showGhost)

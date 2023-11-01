@@ -187,6 +187,7 @@ void openFile() {
 	std::vector<FreeEdge*> fileFreeEdges;
 	std::vector<Textbox*> fileTextboxes;
 	std::vector<NodeText*> fileNodetexts;
+	std::vector<Gate*> fileGates;
 	std::unordered_set<GraphEdge*> fileSwitches;
 	std::unordered_set<FreeEdge*> fileFSwitches;
 	inStream.open(filename);
@@ -241,14 +242,42 @@ void openFile() {
 		catch (...) {
 			return;
 		}
-		if (x < 0 || x >= SCREEN_WIDTH) return;
-		if (y < 0 || y >= SCREEN_HEIGHT) return;
 		if (type < 0 || type >= nodeTypeTotal) return;
 
 		fileNodes.push_back(new GraphNode(x, y, radius, hexToColor(wordVec[3]), (NodeType)type));
 
 		wordVec.clear();
 	}
+
+	while (!error && getline(inStream, line) && line.size() != 0) {
+		std::stringstream strStream(line);
+
+		while (strStream >> word) wordVec.push_back(word);
+
+		if (wordVec.size() != 4) {
+			return;
+		}
+
+		try {
+			x = stoi(wordVec[0]);
+			y = stoi(wordVec[1]);
+			type = stoi(wordVec[3]);
+		}
+		catch (...) {
+			return;
+		}
+		if (type < 0 || type >= uGateTypeTotal + bGateTypeTotal) return;
+
+		if (type < 2) {
+			fileGates.push_back(new UnaryGate(Vec2(x, y), hexToColor(wordVec[2]), (uGateType)type));
+		}
+		else {
+			fileGates.push_back(new BinaryGate(Vec2(x, y), hexToColor(wordVec[2]), (bGateType)type));
+		}
+
+		wordVec.clear();
+	}
+
 
 	//edges
 	int ind1, ind2, etype;
@@ -267,12 +296,18 @@ void openFile() {
 		catch (...) {
 			return;
 		}
-		if (ind1 < 0 || ind1 >= fileNodes.size()) return;
-		if (ind2 < 0 || ind2 >= fileNodes.size()) return;
+		if (ind1 < 0) return;
+		if (ind2 < 0) return;
 		if (etype < 0 || etype >= edgeTypeTotal) return;
-
-		fileEdges.push_back(new GraphEdge(fileNodes[ind1], fileNodes[ind2], hexToColor(wordVec[2]), (EdgeType)etype));
-
+		try {
+			fileEdges.push_back(new GraphEdge(
+				ind1 < fileNodes.size() ? fileNodes[ind1] : fileGates[(ind1 - fileNodes.size()) / 3]->getNode((ind1 - fileNodes.size()) % 3),
+				ind2 < fileNodes.size() ? fileNodes[ind2] : fileGates[(ind2 - fileNodes.size()) / 3]->getNode((ind2 - fileNodes.size()) % 3),
+				hexToColor(wordVec[2]), (EdgeType)etype));
+		}
+		catch (...) {
+			return;
+		}
 		if (etype == (int)Switch) {
 			fileSwitches.insert(fileEdges[fileEdges.size() - 1]);
 			try {
@@ -400,6 +435,9 @@ void openFile() {
 	for (NodeText* nt : nodetexts) {
 		delete nt;
 	}
+	for (Gate* gate : gates) {
+		delete gate;
+	}
 	nodetexts.clear();
 	textboxes.clear();
 	bgColor = filebgColor;
@@ -412,6 +450,8 @@ void openFile() {
 	fswitches = fileFSwitches;
 	textboxes = fileTextboxes;
 	nodetexts = fileNodetexts;
+	gates.clear();
+	gates = fileGates;
 
 	currentFilepath = filename;
 
@@ -443,6 +483,18 @@ void saveTo(std::string filename) {
 			<< toHex(nodes[i]->getColor()) << " "
 			<< nodes[i]->getType() << "\n";
 		indexMap[nodes[i]] = i;
+	}
+
+	outStream << "\n";
+
+	for (int i = 0; i < gates.size(); i++) {
+		outStream << gates[i]->getPos().x << " "
+			<< gates[i]->getPos().y << " "
+			<< toHex(gates[i]->getColor()) << " "
+			<< gates[i]->getType() << "\n";
+		for (int j = 0; j < gates[i]->getNodeNum(); j++) {
+			indexMap[gates[i]->getNode(j)] = 3 * i + nodes.size() + j;
+		}
 	}
 
 	outStream << "\n";

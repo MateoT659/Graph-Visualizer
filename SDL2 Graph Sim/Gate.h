@@ -9,8 +9,10 @@ protected:
 
 public:
 	virtual int getType() = 0;
+	virtual Vec2 getPos() = 0;
 	virtual int isMemberTouched(Vec2 pos) = 0; //to be called during edge testing
 	virtual GraphNode* getNode(int index)=0;
+	virtual int getNodeInd(GraphNode* g) = 0;
 	virtual bool isTouched(Vec2 pos)=0;
 	virtual void setPos(Vec2 vec) = 0;
 	virtual void translateBy(Vec2 pos)=0;
@@ -20,6 +22,7 @@ public:
 	virtual void renderGhost() = 0;
 	virtual Gate* copy() = 0;
 	virtual bool containsNode(GraphNode* node) = 0;
+	virtual int getNodeNum() = 0;
 	
 };
 
@@ -35,6 +38,8 @@ private:
 public:
 	UnaryGate(Vec2 pos, SDL_Color color, uGateType type);
 	~UnaryGate();
+	Vec2 getPos();
+	int getNodeInd(GraphNode* g);
 	int getType() { return (int)type; }
 	int isMemberTouched(Vec2 pos); //to be called during edge testing
 	GraphNode* getNode(int index);
@@ -45,6 +50,7 @@ public:
 	void renderGhost();
 	Gate* copy();
 	bool containsNode(GraphNode* node);
+	int getNodeNum();
 };
 
 class BinaryGate : public Gate {
@@ -62,7 +68,9 @@ private:
 public:
 	BinaryGate(Vec2 pos, SDL_Color color, bGateType type);
 	~BinaryGate();
+	Vec2 getPos();
 	int getType() { return (int)type; }
+	int getNodeInd(GraphNode* g);
 	void setPos(Vec2 vec);
 	int isMemberTouched(Vec2 pos); //to be called during edge testing
 	GraphNode* getNode(int index);
@@ -72,4 +80,5 @@ public:
 	void renderGhost();
 	Gate* copy();
 	bool containsNode(GraphNode* node);
+	int getNodeNum();
 };
