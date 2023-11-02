@@ -86,7 +86,7 @@ extern std::unordered_set<FreeEdge*> fswitches;
 extern std::vector<Gate*> gates;
 
 extern bool running;
-
+extern bool ishovering;
 extern OPENFILENAMEA ofn;       // common dialog box structure
 extern char szFile[260];       // buffer for file name
 extern HWND hwnd;              // owner window

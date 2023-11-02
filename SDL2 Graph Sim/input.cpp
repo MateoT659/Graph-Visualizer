@@ -3,7 +3,7 @@
 void createObject(SDL_Event*, Vec2 mousePos);
 void deleteObject(Vec2 mousePos, SDL_Event* event, Uint8 button);
 void parseKey(SDL_Event*);
-bool dragNode(SDL_Event*, Uint8 button, Vec2 mousePos);
+bool dragNode(SDL_Event*, Uint8 button, Vec2 mousePos, bool pan);
 void copyObject(SDL_Event*, Uint8 button, Vec2 mousePos);
 void openNodeMenu(SDL_Event*);
 void openEdgeMenu(SDL_Event*);
@@ -36,6 +36,7 @@ void parseEvent(SDL_Event* event) {
 		if (sidebar->isTouched(mousePos)) {
 			updateHoverStatus(mousePos, icons);
 		}
+
 		break;
 
 	case SDL_MOUSEBUTTONDOWN:
@@ -59,8 +60,10 @@ void parseEvent(SDL_Event* event) {
 					break;
 				case 2:
 					if (!checkSwitchEdges(mousePos))
+						SetCursor(LoadCursor(NULL, IDC_SIZEALL));
 						if (!moveText(event, mousePos, SDL_BUTTON_LEFT))
-							dragNode(event, SDL_BUTTON_LEFT, mousePos);
+							dragNode(event, SDL_BUTTON_LEFT, mousePos, false);
+						SetCursor(LoadCursor(NULL, IDC_ARROW));
 					break;
 				case 3:
 					deleteObject(mousePos, event, SDL_BUTTON_LEFT);
@@ -82,8 +85,10 @@ void parseEvent(SDL_Event* event) {
 						break;
 					case 3:
 						if (!checkSwitchEdges(mousePos))
+							SetCursor(LoadCursor(NULL, IDC_SIZEALL));
 							if (!moveText(event, mousePos, SDL_BUTTON_LEFT))
-								dragNode(event, SDL_BUTTON_LEFT, mousePos);
+								dragNode(event, SDL_BUTTON_LEFT, mousePos, false);
+							SetCursor(LoadCursor(NULL, IDC_ARROW));
 						break;
 					}
 					break;
@@ -113,9 +118,11 @@ void parseEvent(SDL_Event* event) {
 			}
 			break;
 		case SDL_BUTTON_MIDDLE:
+			SetCursor(LoadCursor(NULL, IDC_SIZEALL));
 			if (!checkSwitchEdges(mousePos))
 				if (!moveText(event, mousePos, SDL_BUTTON_MIDDLE))
-					dragNode(event, SDL_BUTTON_MIDDLE, mousePos);
+					dragNode(event, SDL_BUTTON_MIDDLE, mousePos, true);
+			SetCursor(LoadCursor(NULL, IDC_ARROW));
 			break;
 		}
 		break;
@@ -562,7 +569,7 @@ bool checkSwitchEdges(Vec2 mousePos) {
 void openNodeMenu(SDL_Event* event) {
 	
 	SDL_Rect menuBG = { 0, 0, (int)(63 * (int)nodeTypeTotal), 63 };
-	SDL_Color menuColor = { 64, 64, 64, 255 };
+	SDL_Color menuColor = { 80, 80, 80, 255 };
 	Vec2 mousePos = getMousePos();
 
 	render(false);
@@ -602,7 +609,7 @@ void openNodeMenu(SDL_Event* event) {
 }
 void openEdgeMenu(SDL_Event* event) {
 	SDL_Rect menuBG = { 0, 63, (int)(63 * (int)edgeIcons.size()), 63 };
-	SDL_Color color = { 64, 64, 64, 255 };
+	SDL_Color color = { 80, 80, 80, 255 };
 	Vec2 mousePos = getMousePos();
 
 	render(false);
@@ -640,7 +647,7 @@ void openEdgeMenu(SDL_Event* event) {
 }
 void openTextMenu(SDL_Event* event) {
 	SDL_Rect menuBG = { 0, 63*5, (int)(63 * (int)textIcons.size()), 63 };
-	SDL_Color color = { 64, 64, 64, 255 };
+	SDL_Color color = { 80, 80, 80, 255 };
 	Vec2 mousePos = getMousePos();
 
 	render(false);
@@ -678,7 +685,7 @@ void openTextMenu(SDL_Event* event) {
 }
 void openGateMenu(SDL_Event* event) {
 	SDL_Rect menuBG = { 0, 63*8, (int)(63 * (int)gateIcons.size()), 63 };
-	SDL_Color color = { 64, 64, 64, 255 };
+	SDL_Color color = { 80, 80, 80, 255 };
 	Vec2 mousePos = getMousePos();
 
 	render(false);
@@ -890,8 +897,10 @@ void deleteObject(Vec2 mousePos, SDL_Event* event, Uint8 button) {
 		}
 	}ghost->setPos(mousePos);
 }
-bool dragNode(SDL_Event* event, Uint8 button, Vec2 mousePos) {
+bool dragNode(SDL_Event* event, Uint8 button, Vec2 mousePos, bool pan) {
 	
+
+
 	GraphNode* toMove = nullptr;
 	Vec2 mousePos2;
 	//finds node to be moved
@@ -918,6 +927,37 @@ bool dragNode(SDL_Event* event, Uint8 button, Vec2 mousePos) {
 				}
 			}
 			if (gateMove == nullptr) {
+				if (pan == true) {
+					while (!(event->type == SDL_MOUSEBUTTONUP && event->button.button == button)) {
+						if (SDL_PollEvent(event)) {
+							mousePos2 = getMousePos();
+							for (int i = 0; i < nodes.size(); i++) {
+								nodes[i]->translateBy(mousePos2 - mousePos);
+							}
+							for (int i = 0; i < gates.size(); i++) {
+								gates[i]->translateBy(mousePos2 - mousePos);
+							}
+							for (int i = 0; i < edges.size(); i++) {
+								edges[i]->update();
+							}
+							for (int i = 0; i < freeEdges.size(); i++) {
+								freeEdges[i]->translateBy(mousePos2 - mousePos);
+								freeEdges[i]->update();
+							}
+							for (int i = 0; i < nodetexts.size(); i++) {
+								nodetexts[i]->updatePos();
+							}
+							for (int i = 0; i < textboxes.size(); i++) {
+								textboxes[i]->translateBy(mousePos2 - mousePos);
+							}
+							mousePos = getMousePos();
+							renderU(false);
+							SDL_RenderPresent(renderer);
+						}
+					}
+					return true;
+				}
+
 				//make box and do box copy (do this part after adding free edges to box selection)
 				//make the box
 				SDL_Rect selectBox = { mousePos.x, mousePos.y, 0, 0 };
@@ -1765,14 +1805,24 @@ bool rectIsTouched(SDL_Rect rect, Vec2 pos) {
 }
 
 void updateHoverStatus(Vec2 mousePos, std::vector<Icon*> iconVec) {
+	ishovering = false;
 	for (int i = 0; i < iconVec.size(); i++) {
+		ishovering = iconVec[i]->isHovered() || ishovering;
 		if (!iconVec[i]->containsPoint(mousePos) && iconVec[i]->isHovered()) {
 			iconVec[i]->setHover(false);
+			
 		}
 		else if (iconVec[i]->containsPoint(mousePos) && !iconVec[i]->isHovered()) {
 			iconVec[i]->setHover(true);
 		}
 	}
+	if (ishovering) {
+		SetCursor(LoadCursor(FALSE, IDC_HAND));
+	}
+	else {
+		SetCursor(LoadCursor(FALSE, IDC_ARROW));
+	}
+
 }
 
 void parseMenuClick(Vec2 mousePos, SDL_Event *event)
