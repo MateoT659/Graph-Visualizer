@@ -143,8 +143,18 @@ void Textbox::setPos(int x, int y)
 {
 	this->pos.x = x;
 	this->pos.y = y;
+	box.y = pos.y;
 	this->box.w = (int)((double)box.h * 3. / 5. * (double)text.size());
 	this->box.x = pos.x - box.w / 2;
+}
+
+void Textbox::setCornerPos(Vec2 pos)
+{
+	this->pos.x = pos.x;
+	this->pos.y = pos.y;
+	this->box.x = pos.x;
+	this->box.y = pos.y;
+	this->box.w = (int)((double)box.h * 3. / 5. * (double)text.size());
 }
 
 Vec2 Textbox::getPos() {
@@ -175,6 +185,12 @@ int Textbox::getHeight()
 bool Textbox::containsPoint(Vec2 point)
 {
 	return rectIsTouched(box, point);
+}
+
+void Textbox::renderBoundingBox()
+{
+	drawFilledRectangle(box, WHITE);
+	drawOpenRectangle(box, { 173, 216, 230, 255 });
 }
 
 void Textbox::render()

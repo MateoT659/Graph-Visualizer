@@ -8,9 +8,12 @@ private:
 	Image *hovered;
 	bool *select;
 	bool hover;
+	std::string hoverMessage;
 
 public:
-	Icon(int x, int y, std::string icon);
+	Icon(int x, int y, std::string icon, std::string message);
+
+	std::string getMessage();
 
 	void setIcon(SDL_Texture *texture);
 	SDL_Texture* getIcon();

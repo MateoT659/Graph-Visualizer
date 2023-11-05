@@ -127,6 +127,7 @@ void FreeEdge::render(void)
 		break;
 	case Switch:
 		renderSwitch();
+		break;
 	case HorFirst:
 		renderHorL();
 		break;

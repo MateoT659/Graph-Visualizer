@@ -3,8 +3,8 @@
 UnaryGate::UnaryGate(Vec2 pos, SDL_Color color, uGateType type)
 {
 	this->pos = pos;
-	this->in = new GraphNode(pos - Vec2(30, 0), 20, color, GATE);
-	this->out = new GraphNode(pos + Vec2(38, 0), 20, color, GATE);
+	this->in = new GraphNode(pos - Vec2(30, 0), 40, color, GATE);
+	this->out = new GraphNode(pos + Vec2(38, 0), 40, color, GATE);
 	this->color = color;
 	this->type = type;
 }
@@ -158,9 +158,9 @@ int UnaryGate::getNodeNum()
 BinaryGate::BinaryGate(Vec2 pos, SDL_Color color, bGateType type)
 {
 	this->pos = pos;
-	this->in1 = new GraphNode(pos - Vec2(26, 20), 20, color, GATE);
-	this->in2 = new GraphNode(pos - Vec2(20, -20), 20, color, GATE);
-	this->out = new GraphNode(pos + Vec2(60, 0), 20, color, GATE);
+	this->in1 = new GraphNode(pos - Vec2(26, 20), 40, color, GATE);
+	this->in2 = new GraphNode(pos - Vec2(20, -20), 40, color, GATE);
+	this->out = new GraphNode(pos + Vec2(60, 0), 40, color, GATE);
 	this->color = color;
 	this->type = type;
 }

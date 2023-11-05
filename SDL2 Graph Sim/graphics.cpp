@@ -218,6 +218,7 @@ void renderObjects(bool showGhost) {
 		ghostGate->renderGhost();
 }
 
+
 void renderInterface() {
 	sidebar->render();
 

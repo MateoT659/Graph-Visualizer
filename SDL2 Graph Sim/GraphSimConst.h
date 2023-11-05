@@ -45,7 +45,6 @@ typedef enum bGateType {
 } bGateType;
 const int bGateTypeTotal = 6;
 
-
 const int SCREEN_WIDTH = 1400;
 const int SCREEN_HEIGHT = 1000;
 const double sqrt2 = sqrt(2);
@@ -68,6 +67,7 @@ extern SDL_Rect colorBox;
 extern SDL_Color currentColor;
 extern SDL_Color bgColor;
 extern EdgeType edgeType;
+extern std::string currentToolTip;
 
 extern SDL_Window* window;
 extern SDL_Surface* windowSurface;
@@ -84,9 +84,10 @@ extern std::vector<NodeText*> nodetexts;
 extern std::vector<FreeEdge*> freeEdges;
 extern std::unordered_set<FreeEdge*> fswitches;
 extern std::vector<Gate*> gates;
-
+extern Textbox* tip;
 extern bool running;
-extern bool ishovering;
+
+
 extern OPENFILENAMEA ofn;       // common dialog box structure
 extern char szFile[260];       // buffer for file name
 extern HWND hwnd;              // owner window
@@ -110,6 +111,7 @@ extern std::vector<Icon*>gateIcons;
 //main.cpp
 void initSDL(void);
 void initTextures(void);
+void renderToolTip();
 
 //input.cpp
 void parseEvent(SDL_Event* event);

@@ -25,6 +25,7 @@ public:
 
 	void setPos(Vec2 pos);
 	void setPos(int x, int y);
+	void setCornerPos(Vec2 pos);
 	Vec2 getPos();
 
 	void translateBy(Vec2 pos);
@@ -33,7 +34,7 @@ public:
 	int getHeight();
 
 	bool containsPoint(Vec2 point);
-
+	void renderBoundingBox();
 	void render();
 };
 

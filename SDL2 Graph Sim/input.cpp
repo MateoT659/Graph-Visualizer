@@ -18,8 +18,8 @@ bool moveText(SDL_Event* event, Vec2 mousePos, Uint8 button);
 void getColorEyedropper(Vec2 mousePos);
 void setColorFill(Vec2 mousePos);
 void newFile();
-
 void placeGate(SDL_Event*, Vec2 mousePos);
+
 
 void parseEvent(SDL_Event* event) {
 	Vec2 mousePos = getMousePos();
@@ -35,7 +35,11 @@ void parseEvent(SDL_Event* event) {
 
 		if (sidebar->isTouched(mousePos)) {
 			updateHoverStatus(mousePos, icons);
+			if (rectIsTouched(colorBox, mousePos)) {
+				currentToolTip = "Color Picker";
+			}
 		}
+
 
 		break;
 
@@ -55,15 +59,17 @@ void parseEvent(SDL_Event* event) {
 				switch (selectedInd) {
 				case 0:
 				case 1:
-					if (!checkSwitchEdges(mousePos))
+					if (!checkSwitchEdges(mousePos)) {
+						SetCursor(LoadCursor(NULL, IDC_CROSS));
 						createObject(event, mousePos);
+					}
 					break;
 				case 2:
-					if (!checkSwitchEdges(mousePos))
+					if (!checkSwitchEdges(mousePos)) {
 						SetCursor(LoadCursor(NULL, IDC_SIZEALL));
 						if (!moveText(event, mousePos, SDL_BUTTON_LEFT))
 							dragNode(event, SDL_BUTTON_LEFT, mousePos, false);
-						SetCursor(LoadCursor(NULL, IDC_ARROW));
+					}
 					break;
 				case 3:
 					deleteObject(mousePos, event, SDL_BUTTON_LEFT);
@@ -74,10 +80,13 @@ void parseEvent(SDL_Event* event) {
 				case 5:
 					switch (selectedTextTool) {
 					case 0:
+						SetCursor(LoadCursor(NULL, IDC_IBEAM));
 						createText(event, mousePos);
 						break;
 					case 1:
 						//node char (create node text)
+
+						SetCursor(LoadCursor(NULL, IDC_IBEAM));
 						createNodeText(event, mousePos);
 						break;
 					case 2:
@@ -88,7 +97,6 @@ void parseEvent(SDL_Event* event) {
 							SetCursor(LoadCursor(NULL, IDC_SIZEALL));
 							if (!moveText(event, mousePos, SDL_BUTTON_LEFT))
 								dragNode(event, SDL_BUTTON_LEFT, mousePos, false);
-							SetCursor(LoadCursor(NULL, IDC_ARROW));
 						break;
 					}
 					break;
@@ -101,6 +109,7 @@ void parseEvent(SDL_Event* event) {
 					getColorEyedropper(mousePos);
 					break;
 				case 8:
+					SetCursor(LoadCursor(NULL, IDC_CROSS));
 					placeGate(event, mousePos);
 					break;
 				}
@@ -122,7 +131,6 @@ void parseEvent(SDL_Event* event) {
 			if (!checkSwitchEdges(mousePos))
 				if (!moveText(event, mousePos, SDL_BUTTON_MIDDLE))
 					dragNode(event, SDL_BUTTON_MIDDLE, mousePos, true);
-			SetCursor(LoadCursor(NULL, IDC_ARROW));
 			break;
 		}
 		break;
@@ -580,9 +588,13 @@ void openNodeMenu(SDL_Event* event) {
 	SDL_RenderPresent(renderer);
 
 	while (!SDL_PollEvent(event));
-
+	bool toolTipRendered = false;
+	long lastRenderMilli = 0;
 	while (!(event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)) {
 		if(SDL_PollEvent(event)) {
+			currentToolTip = "";
+			if (toolTipRendered)
+				toolTipRendered = false;
 			mousePos = getMousePos();
 			if (rectIsTouched(menuBG, mousePos)) {
 				updateHoverStatus(mousePos, nodeIcons);
@@ -595,6 +607,17 @@ void openNodeMenu(SDL_Event* event) {
 				nodeIcons[i]->render();
 			}
 			SDL_RenderPresent(renderer);
+			lastRenderMilli = SDL_GetTicks64();
+		}
+		if (!toolTipRendered && currentToolTip != "" && SDL_GetTicks64() - lastRenderMilli > 500) {
+			render(false);
+			drawFilledRectangle(menuBG, menuColor);
+			for (int i = 0; i < nodeIcons.size(); i++) {
+				nodeIcons[i]->render();
+			}
+			renderToolTip();
+			SDL_RenderPresent(renderer);
+			toolTipRendered = true;
 		}
 	}
 
@@ -620,9 +643,13 @@ void openEdgeMenu(SDL_Event* event) {
 	SDL_RenderPresent(renderer);
 
 	while (!SDL_PollEvent(event));
-
+	bool toolTipRendered = false;
+	long lastRenderMilli = 0;
 	while (!(event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)) {
 		if (SDL_PollEvent(event)) {
+			currentToolTip = "";
+			if (toolTipRendered)
+				toolTipRendered = false;
 			mousePos = getMousePos();
 			if (rectIsTouched(menuBG, mousePos)){
 				updateHoverStatus(mousePos, edgeIcons);
@@ -634,8 +661,21 @@ void openEdgeMenu(SDL_Event* event) {
 				edgeIcons[i]->render();
 			}
 			SDL_RenderPresent(renderer);
+
+			lastRenderMilli = SDL_GetTicks64();
+		}
+		if (!toolTipRendered && currentToolTip != "" && SDL_GetTicks64() - lastRenderMilli > 500) {
+			render(false);
+			drawFilledRectangle(menuBG, color);
+			for (int i = 0; i < edgeIcons.size(); i++) {
+				edgeIcons[i]->render();
+			}
+			renderToolTip();
+			SDL_RenderPresent(renderer);
+			toolTipRendered = true;
 		}
 	}
+
 	mousePos = getMousePos();
 	int i;
 	for (i = 0; i < edgeIcons.size() && !edgeIcons[i]->containsPoint(mousePos); i++);
@@ -658,9 +698,13 @@ void openTextMenu(SDL_Event* event) {
 	SDL_RenderPresent(renderer);
 
 	while (!SDL_PollEvent(event));
-
+	bool toolTipRendered = false;
+	long lastRenderMilli = 0;
 	while (!(event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)) {
 		if (SDL_PollEvent(event)) {
+			currentToolTip = "";
+			if (toolTipRendered)
+				toolTipRendered = false;
 			mousePos = getMousePos();
 			if (rectIsTouched(menuBG, mousePos)) {
 				updateHoverStatus(mousePos, textIcons);
@@ -672,8 +716,21 @@ void openTextMenu(SDL_Event* event) {
 				textIcons[i]->render();
 			}
 			SDL_RenderPresent(renderer);
+
+			lastRenderMilli = SDL_GetTicks64();
+		}
+		if (!toolTipRendered && currentToolTip != "" && SDL_GetTicks64() - lastRenderMilli > 500) {
+			render(false);
+			drawFilledRectangle(menuBG, color);
+			for (int i = 0; i < textIcons.size(); i++) {
+				textIcons[i]->render();
+			}
+			renderToolTip();
+			SDL_RenderPresent(renderer);
+			toolTipRendered = true;
 		}
 	}
+
 	mousePos = getMousePos();
 	int i;
 	for (i = 0; i < textIcons.size() && !textIcons[i]->containsPoint(mousePos); i++);
@@ -696,9 +753,13 @@ void openGateMenu(SDL_Event* event) {
 	SDL_RenderPresent(renderer);
 
 	while (!SDL_PollEvent(event));
-
+	bool toolTipRendered = false;
+	long lastRenderMilli = 0;
 	while (!(event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)) {
 		if (SDL_PollEvent(event)) {
+			currentToolTip = "";
+			if (toolTipRendered)
+				toolTipRendered = false;
 			mousePos = getMousePos();
 			if (rectIsTouched(menuBG, mousePos)) {
 				updateHoverStatus(mousePos, gateIcons);
@@ -710,6 +771,17 @@ void openGateMenu(SDL_Event* event) {
 				gateIcons[i]->render();
 			}
 			SDL_RenderPresent(renderer);
+			lastRenderMilli = SDL_GetTicks64();
+		}
+		if (!toolTipRendered && currentToolTip != "" && SDL_GetTicks64() - lastRenderMilli > 500) {
+			render(false);
+			drawFilledRectangle(menuBG, color);
+			for (int i = 0; i < gateIcons.size(); i++) {
+				gateIcons[i]->render();
+			}
+			renderToolTip();
+			SDL_RenderPresent(renderer);
+			toolTipRendered = true;
 		}
 	}
 	mousePos = getMousePos();
@@ -892,14 +964,21 @@ void deleteObject(Vec2 mousePos, SDL_Event* event, Uint8 button) {
 				else {
 					i++;
 				}
+				for (int i = 0; i < textboxes.size();) {
+					if (textboxes[i]->containsPoint(mousePos)) {
+						delete textboxes[i];
+						textboxes.erase(textboxes.begin() + i);
+					}
+					else {
+						i++;
+					}
+				}
 			}
 			renderU(false);
 		}
 	}ghost->setPos(mousePos);
 }
 bool dragNode(SDL_Event* event, Uint8 button, Vec2 mousePos, bool pan) {
-	
-
 
 	GraphNode* toMove = nullptr;
 	Vec2 mousePos2;
@@ -1705,7 +1784,7 @@ void parseKey(SDL_Event* event) {
 			icons[5]->toggleSelected();
 		}
 		else {
-			selectedTextTool = (selectedTextTool +1) % textIcons.size();
+			selectedTextTool = (selectedTextTool + 1) % textIcons.size();
 			updateIcons();
 		}
 		break;
@@ -1731,6 +1810,7 @@ void parseKey(SDL_Event* event) {
 		icons[selectedInd]->toggleSelected();
 		selectedInd = 4;
 		icons[4]->toggleSelected();
+		break;
 	case SDLK_m:
 		icons[selectedInd]->toggleSelected();
 		selectedInd = 2;
@@ -1741,12 +1821,15 @@ void parseKey(SDL_Event* event) {
 		selectedInd = 3;
 		icons[3]->toggleSelected();
 		break;
-	case SDLK_s:
-		saveAsFile();
+	case SDLK_f:
+		icons[selectedInd]->toggleSelected();
+		selectedInd = 6;
+		icons[6]->toggleSelected();
 		break;
-	case SDLK_o:
-		openFile();
-		break;
+	case SDLK_i:
+		icons[selectedInd]->toggleSelected();
+		selectedInd = 7;
+		icons[7]->toggleSelected();
 	}
 }
 
@@ -1805,9 +1888,8 @@ bool rectIsTouched(SDL_Rect rect, Vec2 pos) {
 }
 
 void updateHoverStatus(Vec2 mousePos, std::vector<Icon*> iconVec) {
-	ishovering = false;
 	for (int i = 0; i < iconVec.size(); i++) {
-		ishovering = iconVec[i]->isHovered() || ishovering;
+		if (iconVec[i]->isHovered()) currentToolTip = iconVec[i]->getMessage();
 		if (!iconVec[i]->containsPoint(mousePos) && iconVec[i]->isHovered()) {
 			iconVec[i]->setHover(false);
 			
@@ -1815,12 +1897,6 @@ void updateHoverStatus(Vec2 mousePos, std::vector<Icon*> iconVec) {
 		else if (iconVec[i]->containsPoint(mousePos) && !iconVec[i]->isHovered()) {
 			iconVec[i]->setHover(true);
 		}
-	}
-	if (ishovering) {
-		SetCursor(LoadCursor(FALSE, IDC_HAND));
-	}
-	else {
-		SetCursor(LoadCursor(FALSE, IDC_ARROW));
 	}
 
 }

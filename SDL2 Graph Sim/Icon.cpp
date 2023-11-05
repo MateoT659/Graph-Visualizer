@@ -1,16 +1,22 @@
 #include "Icon.h"
 
-Icon::Icon(int x, int y, std::string icon) {
+Icon::Icon(int x, int y, std::string icon, std::string message) {
 	hovered = new Image(x, y, 61, 61, hoveredTexture);
 	selected = new Image(x, y, 61, 61, selectedTexture);
 	this->icon = new Image(x + 12, y + 12, 37, 37, icon);
 	select = new bool(false);
 	hover = false;
+	this->hoverMessage = message;
 }
 
 void Icon::setIcon(SDL_Texture *texture)
 {
 	icon->setImage(texture);
+}
+
+std::string Icon::getMessage()
+{
+	return hoverMessage;
 }
 
 SDL_Texture* Icon::getIcon()
