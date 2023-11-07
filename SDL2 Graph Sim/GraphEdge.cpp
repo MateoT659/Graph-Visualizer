@@ -323,7 +323,7 @@ void GraphEdge::update() {
 	xmin = min(node1->getX(), node2->getX());
 	xmax = max(node1->getX(), node2->getX());
 	
-	int fromX = node1->getX(), fromY = node1->getY();
+	double fromX = node1->getX(), fromY = node1->getY();
 	if (this->type == HorFirst || this->type == VertFirst) {
 		from = node1->getPos();
 		to = node2->getPos();

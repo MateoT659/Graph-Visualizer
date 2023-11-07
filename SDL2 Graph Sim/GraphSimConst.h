@@ -45,8 +45,8 @@ typedef enum bGateType {
 } bGateType;
 const int bGateTypeTotal = 6;
 
-const int SCREEN_WIDTH = 1400;
-const int SCREEN_HEIGHT = 1000;
+const int SCREEN_WIDTH = 1350;
+const int SCREEN_HEIGHT = 900;
 const double sqrt2 = sqrt(2);
 const double sqrt34 = sqrt(34);
 const double sqrt61 = sqrt(61);

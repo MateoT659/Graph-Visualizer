@@ -102,7 +102,7 @@ void initSDL() {
 		exit(1);
 	}
 	
-	window = SDL_CreateWindow("Graph Creater", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	window = SDL_CreateWindow("Graph Diagram Visualizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if (window == NULL) {
 		std::cout << "SDL_CreateWindow error: " << SDL_GetError() << std::endl;
 		exit(1);
