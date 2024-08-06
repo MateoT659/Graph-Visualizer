@@ -73,6 +73,12 @@ void Icon::render()
 	icon->render();
 }
 
+void Icon::setPos(int x, int y) {
+	hovered->setPos(x, y);
+	selected->setPos(x, y);
+	icon->setPos(x+12, y+12);
+}
+
 void Icon::linkTo(Icon *other)
 {
 	select = other->getSelectedAddress();

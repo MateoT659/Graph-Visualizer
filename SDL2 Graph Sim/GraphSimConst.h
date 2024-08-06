@@ -45,8 +45,8 @@ typedef enum bGateType {
 } bGateType;
 const int bGateTypeTotal = 6;
 
-const int SCREEN_WIDTH = 1350;
-const int SCREEN_HEIGHT = 900;
+extern int SCREEN_WIDTH;
+extern int SCREEN_HEIGHT;
 const double sqrt2 = sqrt(2);
 const double sqrt34 = sqrt(34);
 const double sqrt61 = sqrt(61);
@@ -104,6 +104,10 @@ extern SDL_Texture* selectedTexture;
 extern std::vector<Icon*> nodeIcons;
 extern std::vector<Icon*> edgeIcons;
 extern std::vector<Icon*> textIcons;
+extern std::vector<Icon*> colorIcons;
+extern std::vector<Icon*> editIcons;
+extern int selectedEditTool;
+extern int selectedColorTool;
 extern int selectedTextTool;
 extern std::string currentFilepath;
 extern std::vector<Icon*>gateIcons;
@@ -122,6 +126,7 @@ bool lineIntersectsLine(Vec2 v1, Vec2 v2, Vec2 u1, Vec2 u2);
 bool lineIntersectsRect(SDL_Rect rect, Vec2 p1, Vec2 p2);
 
 //graphics.cpp
+void updateUIOnMove();
 void drawCircle(Vec2 pos, int radius);
 void drawCircle(int cx, int cy, int radius);
 void drawOpenCircle(Vec2 pos, int radius);

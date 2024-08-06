@@ -150,8 +150,10 @@ void drawCircle(int cx, int cy, int radius) {
 void updateIcons() {
 	icons[1]->setIcon(edgeIcons[(int)edgeType]->getIcon());
 	icons[0]->setIcon(nodeIcons[(int)ghost->getType()]->getIcon());
-	icons[5]->setIcon(textIcons[selectedTextTool]->getIcon());
-	icons[8]->setIcon(gateIcons[ghostGate->getType()]->getIcon());
+	icons[4]->setIcon(textIcons[selectedTextTool]->getIcon());
+	icons[5]->setIcon(gateIcons[ghostGate->getType()]->getIcon());
+	icons[2]->setIcon(editIcons[selectedEditTool]->getIcon());
+	icons[3]->setIcon(colorIcons[selectedColorTool]->getIcon());
 	
 }
 
@@ -214,10 +216,19 @@ void renderObjects(bool showGhost) {
 	if (selectedInd <=1 && showGhost)
 		ghost->render();
 
-	if (selectedInd == 8 && showGhost)
+	if (selectedInd == 5 && showGhost)
 		ghostGate->renderGhost();
 }
 
+void updateUIOnMove() {
+	sidebar->setSize(sidebar->getWidth(), SCREEN_HEIGHT);
+	colorBox.y = SCREEN_HEIGHT - 53;
+
+	icons[6]->setPos(0, SCREEN_HEIGHT - 120 - 63 * 3);
+	icons[7]->setPos(0, SCREEN_HEIGHT - 120 - 63 * 2);
+	icons[8]->setPos(0, SCREEN_HEIGHT - 120 - 63);
+	icons[9]->setPos(0, SCREEN_HEIGHT - 120);
+}
 
 void renderInterface() {
 	sidebar->render();

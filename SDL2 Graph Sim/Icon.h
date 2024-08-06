@@ -31,7 +31,7 @@ public:
 	void toggleSelected();
 
 	void render();
-
+	void setPos(int x, int y);
 	void linkTo(Icon *other);
 
 };

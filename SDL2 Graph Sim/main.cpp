@@ -27,10 +27,17 @@ int selectedInd;
 std::vector<Icon*> nodeIcons;
 std::vector<Icon*> edgeIcons;
 std::vector<Icon*> textIcons;
+std::vector<Icon*> colorIcons;
+std::vector<Icon*> editIcons;
 int selectedTextTool;
+int selectedEditTool;
+int selectedColorTool;
 std::vector<Icon*>gateIcons;
 std::string currentToolTip;
 Textbox* tip;
+
+int SCREEN_WIDTH;
+int SCREEN_HEIGHT;
 
 /*
 * 
@@ -101,8 +108,9 @@ void initSDL() {
 		std::cout << "SDL_Init error: " << SDL_GetError << std::endl;
 		exit(1);
 	}
-	
-	window = SDL_CreateWindow("Graph Diagram Visualizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	SCREEN_WIDTH = 1350;
+	SCREEN_HEIGHT = 900;
+	window = SDL_CreateWindow("Graph Diagram Visualizer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 	if (window == NULL) {
 		std::cout << "SDL_CreateWindow error: " << SDL_GetError() << std::endl;
 		exit(1);
@@ -139,6 +147,8 @@ void initSDL() {
 
 	clearScreen(BLACK);
 
+	SDL_SetWindowIcon(window, IMG_Load("Assets/GraphIcon.png"));
+
 }
 
 void initTextures() {
@@ -148,7 +158,7 @@ void initTextures() {
 		std::cout << "Failed to load font! Error: " << TTF_GetError() << "\n";
 	}
 
-	sidebar = new Image(0, 0, 61, 1000, "Assets/Sidebar.png");
+	sidebar = new Image(0, 0, 61, SCREEN_HEIGHT, "Assets/Sidebar.png");
 
 	//icon textures
 	hoveredTexture = loadTexture("Assets/IconHover.png");
@@ -174,21 +184,31 @@ void initTextures() {
 
 
 	selectedTextTool = 0;
-	textIcons.push_back(new Icon(0, 63 * 5, "Assets/IconText.png", "Textbox"));
-	textIcons.push_back(new Icon(63, 63 * 5, "Assets/IconNodeText.png", "In-Node Label"));
-	textIcons.push_back(new Icon(63 * 2, 63 * 5, "Assets/IconEraseText.png", "Text Eraser"));
-	textIcons.push_back(new Icon(63 * 3, 63 * 5, "Assets/IconMoveText.png", "Text Movement"));
+	textIcons.push_back(new Icon(0, 63 * 4, "Assets/IconText.png", "Textbox"));
+	textIcons.push_back(new Icon(63, 63 * 4, "Assets/IconNodeText.png", "In-Node Label"));
+	textIcons.push_back(new Icon(63 * 2, 63 * 4, "Assets/IconEraseText.png", "Text Eraser"));
+	textIcons.push_back(new Icon(63 * 3, 63 * 4, "Assets/IconMoveText.png", "Text Movement"));
 
-
-	gateIcons.push_back(new Icon(0, 63 * 8, "Assets/IconIdentity.png", "Identity Gate"));
-	gateIcons.push_back(new Icon(63, 63 * 8, "Assets/IconNot.png", "NOT Gate"));
-	gateIcons.push_back(new Icon(63*2, 63 * 8, "Assets/IconAnd.png", "AND Gate"));
-	gateIcons.push_back(new Icon(63*3, 63 * 8, "Assets/IconNand.png", "NAND Gate"));
-	gateIcons.push_back(new Icon(63*4, 63 * 8, "Assets/IconOr.png", "OR Gate"));
-	gateIcons.push_back(new Icon(63*5, 63 * 8, "Assets/IconNor.png", "NOR Gate"));
-	gateIcons.push_back(new Icon(63*6, 63 * 8, "Assets/IconXor.png", "XOR Gate"));
-	gateIcons.push_back(new Icon(63*7, 63 * 8, "Assets/IconXnor.png", "XNOR Gate"));
 	
+	gateIcons.push_back(new Icon(0, 63 * 5, "Assets/IconIdentity.png", "Identity Gate"));
+	gateIcons.push_back(new Icon(63, 63 * 5, "Assets/IconNot.png", "NOT Gate"));
+	gateIcons.push_back(new Icon(63*2, 63 * 5, "Assets/IconAnd.png", "AND Gate"));
+	gateIcons.push_back(new Icon(63*3, 63 * 5, "Assets/IconNand.png", "NAND Gate"));
+	gateIcons.push_back(new Icon(63*4, 63 * 5, "Assets/IconOr.png", "OR Gate"));
+	gateIcons.push_back(new Icon(63*5, 63 * 5, "Assets/IconNor.png", "NOR Gate"));
+	gateIcons.push_back(new Icon(63*6, 63 * 5, "Assets/IconXor.png", "XOR Gate"));
+	gateIcons.push_back(new Icon(63*7, 63 * 5, "Assets/IconXnor.png", "XNOR Gate"));
+	
+	selectedEditTool = 0;
+	editIcons.push_back(new Icon(0, 63 * 2, "Assets/IconEraser.png", "Eraser Tool (D)"));
+	editIcons.push_back(new Icon(63, 63 * 2, "Assets/IconMove.png", "Node Movement Tool (M)"));
+	editIcons.push_back(new Icon(63*2, 63 * 2, "Assets/IconCopy.png", "Copy Tool (C)"));
+
+	selectedColorTool = 0;
+	colorIcons.push_back(new Icon(0, 63 * 3, "Assets/IconFillTool.png", "Fill Bucket Tool (F)"));
+	colorIcons.push_back(new Icon(63, 63 * 3, "Assets/IconEyedropper.png", "Eyedropper Tool (I)"));
+
+
 	selectedInd = 0;
 
 	//sidebar icons
@@ -196,15 +216,13 @@ void initTextures() {
 	icons[0]->toggleSelected();
 	icons.push_back(new Icon(0, 63, "Assets/IconEdge.png", "Edge Connection Tools (E)"));
 	icons[1]->linkTo(icons[0]);
-	icons.push_back(new Icon(0, 63 * 2, "Assets/IconMove.png", "Node Movement Tool (M)"));
-	icons.push_back(new Icon(0, 63 * 3, "Assets/IconEraser.png", "Eraser Tool (D)"));
-	icons.push_back(new Icon(0, 63 * 4, "Assets/IconCopy.png", "Copy Tool (C)"));
-	icons.push_back(new Icon(0, 63 * 5, "Assets/IconText.png", "Text Tools (T)"));
-	icons.push_back(new Icon(0, 63 * 6, "Assets/IconFillTool.png", "Fill Bucket Tool (F)"));
-	icons.push_back(new Icon(0, 63 * 7, "Assets/IconEyedropper.png", "Eyedropper Tool (I)"));
-	icons.push_back(new Icon(0, 63 * 8, "Assets/IconIdentity.png", "Logic Gate Tools (G)"));
-	icons.push_back(new Icon(0, SCREEN_HEIGHT - 120 - 63 * 3, "Assets/IconNewFile.png", "New File"));
-	icons.push_back(new Icon(0, SCREEN_HEIGHT - 120 - 63 * 2, "Assets/IconSave.png", "Save Current File"));
+	icons.push_back(new Icon(0, 63 * 2, "Assets/IconEraser.png", "Editing Tools"));
+	icons.push_back(new Icon(0, 63 * 3, "Assets/IconFillTool.png", "Color Tools)"));
+	icons.push_back(new Icon(0, 63 * 4, "Assets/IconText.png", "Text Tools (T)"));
+	icons.push_back(new Icon(0, 63 * 5, "Assets/IconIdentity.png", "Logic Gate Tools (G)"));
+
+	icons.push_back(new Icon(0, SCREEN_HEIGHT - 120 - 63 * 3, "Assets/IconNewFile.png", "New File (CTRL+N)"));
+	icons.push_back(new Icon(0, SCREEN_HEIGHT - 120 - 63 * 2, "Assets/IconSave.png", "Save Current File (CTRL+S)"));
 	icons.push_back(new Icon(0, SCREEN_HEIGHT - 120 - 63, "Assets/IconSaveAs.png", "Save As"));
-	icons.push_back(new Icon(0, SCREEN_HEIGHT - 120, "Assets/IconOpen.png", "Open File"));
+	icons.push_back(new Icon(0, SCREEN_HEIGHT - 120, "Assets/IconOpen.png", "Open File (CTRL+O)"));
 }

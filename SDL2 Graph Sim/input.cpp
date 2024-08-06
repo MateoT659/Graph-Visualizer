@@ -65,19 +65,33 @@ void parseEvent(SDL_Event* event) {
 					}
 					break;
 				case 2:
-					if (!checkSwitchEdges(mousePos)) {
-						SetCursor(LoadCursor(NULL, IDC_SIZEALL));
-						if (!moveText(event, mousePos, SDL_BUTTON_LEFT))
-							dragNode(event, SDL_BUTTON_LEFT, mousePos, false);
+					switch (selectedEditTool) {
+					case 0:
+						deleteObject(mousePos, event, SDL_BUTTON_LEFT);
+						break;
+					case 1:
+						if (!checkSwitchEdges(mousePos)) {
+							SetCursor(LoadCursor(NULL, IDC_SIZEALL));
+							if (!moveText(event, mousePos, SDL_BUTTON_LEFT))
+								dragNode(event, SDL_BUTTON_LEFT, mousePos, false);
+						}
+						break;
+					case 2:
+						copyObject(event, SDL_BUTTON_LEFT, mousePos);
+						break;
 					}
 					break;
 				case 3:
-					deleteObject(mousePos, event, SDL_BUTTON_LEFT);
+					switch (selectedColorTool) {
+					case 0:
+						setColorFill(mousePos);
+						break;
+					case 1:
+						getColorEyedropper(mousePos);
+						break;
+					}
 					break;
 				case 4:
-					copyObject(event, SDL_BUTTON_LEFT, mousePos);
-					break;
-				case 5:
 					switch (selectedTextTool) {
 					case 0:
 						SetCursor(LoadCursor(NULL, IDC_IBEAM));
@@ -100,15 +114,7 @@ void parseEvent(SDL_Event* event) {
 						break;
 					}
 					break;
-				case 6:
-					//FILL TOOL
-					setColorFill(mousePos);
-					break;
-				case 7:
-					//EYEDROPPER TOOL
-					getColorEyedropper(mousePos);
-					break;
-				case 8:
+				case 5:
 					SetCursor(LoadCursor(NULL, IDC_CROSS));
 					placeGate(event, mousePos);
 					break;
@@ -118,7 +124,7 @@ void parseEvent(SDL_Event* event) {
 
 		case SDL_BUTTON_RIGHT:
 			switch (selectedInd) {
-			case 5:
+			case 4:
 				deleteText(event, mousePos, SDL_BUTTON_RIGHT);
 				break;
 			default:
@@ -145,6 +151,21 @@ void parseEvent(SDL_Event* event) {
 			adjustGhostSize(event);
 		}
 		break;
+	case SDL_WINDOWEVENT:
+		SDL_GetWindowSize(window, &SCREEN_WIDTH, &SCREEN_HEIGHT);
+		bool resize = false;
+		if (SCREEN_HEIGHT < 680) {
+			SCREEN_HEIGHT = 680;
+			resize = true;
+		}
+		if (SCREEN_WIDTH < 200) {
+			SCREEN_WIDTH = 200;
+			resize = true;
+		}
+
+		if (resize) SDL_SetWindowSize(window, SCREEN_WIDTH, SCREEN_HEIGHT);
+		updateUIOnMove();
+		break; 
 	}
 }
 
@@ -685,8 +706,120 @@ void openEdgeMenu(SDL_Event* event) {
 	}
 
 }
+void openEditMenu(SDL_Event* event) {
+	SDL_Rect menuBG = { 0, 63*2, (int)(63 * (int)editIcons.size()), 63 };
+	SDL_Color color = { 80, 80, 80, 255 };
+	Vec2 mousePos = getMousePos();
+
+	render(false);
+	drawFilledRectangle(menuBG, color);
+	for (int i = 0; i < editIcons.size(); i++) {
+		editIcons[i]->render();
+	}
+	SDL_RenderPresent(renderer);
+
+	while (!SDL_PollEvent(event));
+	bool toolTipRendered = false;
+	long lastRenderMilli = 0;
+	while (!(event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)) {
+		if (SDL_PollEvent(event)) {
+			currentToolTip = "";
+			if (toolTipRendered)
+				toolTipRendered = false;
+			mousePos = getMousePos();
+			if (rectIsTouched(menuBG, mousePos)) {
+				updateHoverStatus(mousePos, editIcons);
+			}
+
+			render(false);
+			drawFilledRectangle(menuBG, color);
+			for (int i = 0; i < editIcons.size(); i++) {
+				editIcons[i]->render();
+			}
+			SDL_RenderPresent(renderer);
+
+			lastRenderMilli = SDL_GetTicks64();
+		}
+		if (!toolTipRendered && currentToolTip != "" && SDL_GetTicks64() - lastRenderMilli > 500) {
+			render(false);
+			drawFilledRectangle(menuBG, color);
+			for (int i = 0; i < editIcons.size(); i++) {
+				editIcons[i]->render();
+			}
+			renderToolTip();
+			SDL_RenderPresent(renderer);
+			toolTipRendered = true;
+		}
+	}
+
+	mousePos = getMousePos();
+	int i;
+	for (i = 0; i < editIcons.size() && !editIcons[i]->containsPoint(mousePos); i++);
+	if (i < editIcons.size()) {
+		selectedEditTool = i;
+		updateIcons();
+	}
+
+}
+
+void openColorMenu(SDL_Event* event) {
+	SDL_Rect menuBG = { 0, 63 * 3, (int)(63 * (int)colorIcons.size()), 63 };
+	SDL_Color color = { 80, 80, 80, 255 };
+	Vec2 mousePos = getMousePos();
+
+	render(false);
+	drawFilledRectangle(menuBG, color);
+	for (int i = 0; i < colorIcons.size(); i++) {
+		colorIcons[i]->render();
+	}
+	SDL_RenderPresent(renderer);
+
+	while (!SDL_PollEvent(event));
+	bool toolTipRendered = false;
+	long lastRenderMilli = 0;
+	while (!(event->type == SDL_MOUSEBUTTONDOWN && event->button.button == SDL_BUTTON_LEFT)) {
+		if (SDL_PollEvent(event)) {
+			currentToolTip = "";
+			if (toolTipRendered)
+				toolTipRendered = false;
+			mousePos = getMousePos();
+			if (rectIsTouched(menuBG, mousePos)) {
+				updateHoverStatus(mousePos, colorIcons);
+			}
+
+			render(false);
+			drawFilledRectangle(menuBG, color);
+			for (int i = 0; i < colorIcons.size(); i++) {
+				colorIcons[i]->render();
+			}
+			SDL_RenderPresent(renderer);
+
+			lastRenderMilli = SDL_GetTicks64();
+		}
+		if (!toolTipRendered && currentToolTip != "" && SDL_GetTicks64() - lastRenderMilli > 500) {
+			render(false);
+			drawFilledRectangle(menuBG, color);
+			for (int i = 0; i < colorIcons.size(); i++) {
+				colorIcons[i]->render();
+			}
+			renderToolTip();
+			SDL_RenderPresent(renderer);
+			toolTipRendered = true;
+		}
+	}
+
+	mousePos = getMousePos();
+	int i;
+	for (i = 0; i < colorIcons.size() && !colorIcons[i]->containsPoint(mousePos); i++);
+	if (i < colorIcons.size()) {
+		selectedColorTool = i;
+		updateIcons();
+	}
+
+}
+
 void openTextMenu(SDL_Event* event) {
-	SDL_Rect menuBG = { 0, 63*5, (int)(63 * (int)textIcons.size()), 63 };
+	SDL_Rect menuBG = { 0, 63*4, (int)(63 * (int)textIcons.size()), 63 };
 	SDL_Color color = { 80, 80, 80, 255 };
 	Vec2 mousePos = getMousePos();
 
@@ -741,7 +874,7 @@ void openTextMenu(SDL_Event* event) {
 
 }
 void openGateMenu(SDL_Event* event) {
-	SDL_Rect menuBG = { 0, 63*8, (int)(63 * (int)gateIcons.size()), 63 };
+	SDL_Rect menuBG = { 0, 63*5, (int)(63 * (int)gateIcons.size()), 63 };
 	SDL_Color color = { 80, 80, 80, 255 };
 	Vec2 mousePos = getMousePos();
 
@@ -857,6 +990,20 @@ void createObject(SDL_Event* event, Vec2 mousePos) {
 			if (edgeType == Switch) {
 				switches.insert(edges[edges.size() - 1]);
 			}
+		}
+		else {
+			GraphNode* addNode = ghost->copy();
+			if (n1 < nodes.size()) {
+				edges.push_back(new GraphEdge(nodes[n1], addNode, currentColor, edgeType));
+			}
+			else {
+				edges.push_back(new GraphEdge(gates[(n1 - (int)nodes.size()) / 3]->getNode((n1 - (int)nodes.size()) % 3), addNode, currentColor, edgeType));
+			}
+			if (edgeType == Switch) {
+				switches.insert(edges[edges.size() - 1]);
+			}
+			nodes.push_back(addNode);
+
 		}
 	}
 	else {
@@ -1767,7 +1914,10 @@ void parseKey(SDL_Event* event) {
 		}
 		break;
 	case SDLK_n:
-		if (selectedInd <= 1) {
+		if (SDL_GetModState() & KMOD_CTRL) {
+			newFile();
+		}
+		else if (selectedInd <= 1) {
 			ghost->setType((NodeType)(((int)ghost->getType() + 1) % nodeTypeTotal));
 			updateIcons();
 		}
@@ -1778,10 +1928,10 @@ void parseKey(SDL_Event* event) {
 		}
 		break;
 	case SDLK_t:
-		if (selectedInd != 5) {
+		if (selectedInd != 4) {
 			icons[selectedInd]->toggleSelected();
-			selectedInd = 5;
-			icons[5]->toggleSelected();
+			selectedInd = 4;
+			icons[4]->toggleSelected();
 		}
 		else {
 			selectedTextTool = (selectedTextTool + 1) % textIcons.size();
@@ -1789,10 +1939,10 @@ void parseKey(SDL_Event* event) {
 		}
 		break;
 	case SDLK_g:
-		if (selectedInd != 8) {
+		if (selectedInd != 5) {
 			icons[selectedInd]->toggleSelected();
-			selectedInd = 8;
-			icons[8]->toggleSelected();
+			selectedInd = 5;
+			icons[5]->toggleSelected();
 		}
 		else {
 			int newtype = (ghostGate->getType() + 1) % gateIcons.size();
@@ -1806,30 +1956,74 @@ void parseKey(SDL_Event* event) {
 			updateIcons();
 		}
 		break;
+	case SDLK_s:
+		if (SDL_GetModState() & KMOD_CTRL) {
+			saveFile();
+		}
+		break;
+	case SDLK_o:
+		if (SDL_GetModState() & KMOD_CTRL) {
+			openFile();
+		}
+		break;
 	case SDLK_c:
 		icons[selectedInd]->toggleSelected();
-		selectedInd = 4;
-		icons[4]->toggleSelected();
+		selectedInd = 2;
+
+		selectedEditTool = 2;
+		updateIcons();
+		icons[2]->toggleSelected();
 		break;
 	case SDLK_m:
 		icons[selectedInd]->toggleSelected();
 		selectedInd = 2;
+		selectedEditTool = 1;
+		updateIcons();
 		icons[2]->toggleSelected();
 		break;
 	case SDLK_d:
 		icons[selectedInd]->toggleSelected();
-		selectedInd = 3;
-		icons[3]->toggleSelected();
+		selectedInd = 2;
+		selectedEditTool = 0;
+		updateIcons();
+		icons[2]->toggleSelected();
 		break;
 	case SDLK_f:
 		icons[selectedInd]->toggleSelected();
-		selectedInd = 6;
-		icons[6]->toggleSelected();
+		selectedInd = 3;
+		selectedColorTool = 0;
+		updateIcons();
+		icons[3]->toggleSelected();
 		break;
 	case SDLK_i:
 		icons[selectedInd]->toggleSelected();
-		selectedInd = 7;
-		icons[7]->toggleSelected();
+		selectedInd = 3;
+		selectedColorTool = 1;
+		updateIcons();
+		icons[3]->toggleSelected();
+		break;
+	case SDLK_RIGHT:
+		SCREEN_WIDTH += 100;
+		SDL_SetWindowSize(window, SCREEN_WIDTH, SCREEN_HEIGHT);
+		break;
+	case SDLK_LEFT:
+		SCREEN_WIDTH -= 100;
+		if (SCREEN_WIDTH < 200) {
+			SCREEN_WIDTH = 200;
+		}
+		SDL_SetWindowSize(window, SCREEN_WIDTH, SCREEN_HEIGHT);
+		break;
+	case SDLK_UP:
+		SCREEN_HEIGHT -= 100;
+		if (SCREEN_HEIGHT < 680) {
+			SCREEN_HEIGHT = 680;
+		}
+		SDL_SetWindowSize(window, SCREEN_WIDTH, SCREEN_HEIGHT);
+		break;
+	case SDLK_DOWN:
+		SCREEN_HEIGHT += 100;
+		SDL_SetWindowSize(window, SCREEN_WIDTH, SCREEN_HEIGHT);
+		break;
 	}
 }
 
@@ -1926,10 +2120,16 @@ void parseMenuClick(Vec2 mousePos, SDL_Event *event)
 	case 1:
 		openEdgeMenu(event);
 		break;
-	case 5:
+	case 2:
+		openEditMenu(event);
+		break;
+	case 3:
+		openColorMenu(event);
+		break;
+	case 4:
 		openTextMenu(event);
 		break;
-	case 8:
+	case 5:
 		openGateMenu(event);
 	default:
 		if (clickedInd == icons.size() - 3)
